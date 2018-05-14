@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Demo</title>
+<script type="text/javascript" src="openjs/jquery-1.6.2.js"></script>
+<script type="text/javascript" src="openjs/json.js"></script>
+<script type="text/javascript" src="js/dataInfo/hashMap.js"></script>
+<script type="text/javascript" src="js/dataInfo/globalVariable.js"></script>
+<script type="text/javascript" src="agentdialog.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/operation/query.js"></script>
+<script type="text/javascript">
+window.onload=function init()
+{
+	document.getElementById("tbRestInfo").style.display="none";
+	document.getElementById("tbTransInfo").style.display="none";
+	document.getElementById("tbInnerCallInfo").style.display="none";
+	document.getElementById("tbHoldList").style.display="none";
+	document.getElementById("tbCallInfo").style.display="none";
+	document.getElementById("tbInnerHelpInfo").style.display="none";
+	document.getElementById("tbCallOutInfo").style.display="none";
+	document.getElementById("tbVoiceTransInfo").style.display="none";
+	document.getElementById("tbNoticeInfo").style.display="none";
+	document.getElementById("tbNoteInfo").style.display="none";
+	document.getElementById("tbSetCallData").style.display="none";
+	document.getElementById("tbCallDataResult").style.display="none";
+	document.getElementById("tbModPwd").style.display="none";
+	
+	dialogType = window.dialogArguments.str;
+	workNo = window.dialogArguments.workNo;
+	
+	if ("ModPwd" == dialogType)
+	{
+		document.getElementById("tbModPwd").style.display="";
+		document.title="Modify Password";
+	}
+	else if ("Rest" == dialogType)
+	{
+		document.getElementById("tbRestInfo").style.display="";
+		document.title="rest";
+		queryRestReason(workNo);
+	}
+	else if ("publishNotice" == dialogType)
+	{
+		document.getElementById("tbNoticeInfo").style.display="";
+        document.title="NoticeInfo";
+        var noticeType = document.getElementById("noticeType").value;
+        if("0" == noticeType)
+       	{
+            queryGroupByAgent(workNo);
+       	}
+        else if("1" == noticeType)
+       	{
+            querySkillByAgent(workNo);
+       	}
+	}
+	else if ("sendNote" == dialogType)
+    {
+        document.getElementById("tbNoteInfo").style.display="";
+        document.title="NoteInfo";      
+    }
+	else if ("Transfer" == dialogType)
+	{
+		document.getElementById("tbTransInfo").style.display="";
+		document.title="TransferInfo";
+		queryAgentText(workNo);
+	}
+	else if ("InnerCall" == dialogType)
+	{
+		document.getElementById("tbInnerCallInfo").style.display="";
+		document.title="InnerCall";
+		loadInnerCall(workNo);
+	}
+	else if ("HoldList" == dialogType)
+	{
+		document.getElementById("tbHoldList").style.display="";
+        document.title="HoldList";
+        loadHoldList(workNo);
+	}
+	else if("CallInfo" == dialogType)
+	{
+		document.getElementById("tbCallInfo").style.display="";
+        document.title="CallInfo";
+        loadCallInfo(workNo);
+	}
+	else if("InnerHelp" == dialogType)
+	{
+		document.getElementById("tbInnerHelpInfo").style.display="";
+        document.title="InnerHelpInfo";
+        queryInnerHelpAgent(workNo);
+	}
+	else if("CallOut" == dialogType)
+	{
+		document.getElementById("tbCallOutInfo").style.display="";
+		document.title="callOutInfo";
+	}
+	else if("VoiceTransfer" == dialogType)
+	{
+		document.getElementById("tbVoiceTransInfo").style.display="";
+        document.title="VoiceTransInfo";
+        var deviceTypeVoice = document.getElementById("deviceTypeVoice").value;
+       	$('#addressVoice').hide();
+       	$("#addressVoiceChoose").show();
+       	document.getElementById("modeVoice").options.add(new Option("释放转","0"));
+       	document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+       	loadSkillQueue(workNo);
+	}
+	else if("SetCallData" == dialogType)
+	{
+		document.getElementById("tbSetCallData").style.display="";
+        document.title="SetCallData";
+        loadCallInfo(workNo,"callInformationSet");
+	}
+	else if("CallDataResult" == dialogType)
+	{
+		var result = window.dialogArguments.result;
+		document.getElementById("tbCallDataResult").style.display="";
+        document.title="CallDataResult";
+        $("#callDataResult").val(result);
+	}
+	else if("SwitchType" == dialogType)
+	{
+		document.getElementById("tbSwitchtypeInfo").style.display="";
+        document.title="switchType";
+        qualityControlQuerySwitchType();
+	}
+}
+
+function response(OprType)
+{
+	var _return;
+	if ("ModPwd" == OprType)
+	{
+	    var oldPwd = document.getElementById("oldPwd").value;
+	    var newPwd = document.getElementById("newPwd").value;
+	    var confirmPwd = document.getElementById("confirmPwd").value;
+	    if(confirmPwd == newPwd)
+		{
+	    	var obj = new Object();
+		    obj.oldPwd = oldPwd;
+		    obj.newPwd = newPwd;
+		    _return = obj;
+		}
+		else
+		{
+			alert("twice input of newPwd is not the same");
+			return;
+		}
+	}
+	else if ("Rest" == OprType)
+	{
+		var restTime = document.getElementById("restTime").value;
+		var restReason = document.getElementById("restReason").value;
+		if (!isValidRestTime(restTime))
+		{
+			return;
+		}
+		var obj = new Object();
+		obj.restTime = restTime;
+		obj.restReason = restReason;
+		_return = obj;
+	}
+	else if ("PublishNotice" == OprType)
+	{
+		var noticeType = document.getElementById("noticeType").value;
+		var targetName = document.getElementById("targetName").value;
+		var noticeContent = document.getElementById("noticeContent").value;
+		var obj = new Object();
+		obj.noticeType = noticeType;
+		obj.targetName = targetName;
+		obj.noticeContent = noticeContent;
+		_return = obj;
+	}
+	else if ("SendNote" == OprType)
+    {
+        var receiver = document.getElementById("noteReceiver").value;
+        var content = document.getElementById("noteContent").value;
+        var obj = new Object();
+        obj.receiver = receiver;
+        obj.content = content;
+        _return = obj;
+    }
+	else if ("Transfer" == OprType)
+	{
+		var deviceType = document.getElementById("deviceType").value;
+		var address = document.getElementById("address").value;
+		var mode = document.getElementById("mode").value;
+		if (!isTransferAddress(address))
+		{
+			return;
+		}
+		var obj = new Object();
+		obj.deviceType = deviceType;
+		obj.address = address;
+		obj.mode = mode;
+		_return = obj;
+	}
+	else if ("InnerCall" == OprType)
+	{
+		var agentNum = document.getElementById("agentID").value;
+		if(!isValidWorkNo(agentNum))
+		{
+			return;
+		}
+		_return = agentNum;
+	}
+	else if("UnHold" == OprType)
+	{
+		_return = document.getElementById("holdList").value;
+	}
+	else if("CallInfo" == OprType)
+	{
+		_return = document.getElementById("callInfo").value;
+	}
+	else if("InnerHelpInfo" == OprType)
+	{
+	    var dstaddress = document.getElementById("innerHelpAddress").value;
+	    var devicetype = document.getElementById("innerHelpDevice").value;
+	    var mode = document.getElementById("innerHelpMode").value;
+	    if (!isValidDeviceType(devicetype))
+	    {
+	        return;
+	    }
+	    if (!isValidMode(mode))
+	    {
+	        return;
+	    }
+	    var obj = new Object();
+	    obj.dstaddress = dstaddress;
+	    obj.devicetype = devicetype;
+	    obj.mode = mode;
+	    _return = obj;
+	}
+	else if("CallOut" == OprType)
+	{
+		var calledNum = document.getElementById("called").value;
+		if (!isValidPhoneNum(calledNum))
+		{
+			return;
+		}
+		_return = calledNum;
+	}
+	else if("VoiceTransfer" == OprType)
+	{
+		var deviceType = document.getElementById("deviceTypeVoice").value;
+        var address = document.getElementById("addressVoice").value;
+        var addressChoice = document.getElementById("addressVoiceChoose").value;
+        var mode = document.getElementById("modeVoice").value;
+        
+        if ("5" == deviceType && !isTransferAddress(address))
+        {
+        	return;
+        }
+        if ("5" != deviceType && IsNullOrBlank(addressChoice))
+       	{
+        	alert("Transfer address cannot be blank!")
+			return;       	
+       	}
+        var obj = new Object();
+        if("5" == deviceType)
+        {
+	        obj.address = address;
+        }else
+        {
+	        obj.address = addressChoice;
+        }
+        obj.deviceType = deviceType;
+        obj.mode = mode;
+        _return = obj;
+	}
+	else if("SetCallData" == OprType)
+	{
+		var callId = document.getElementById("callInformationSet").value;
+		var callData = document.getElementById("setCallData").value;
+		var obj = new Object();
+		obj.callId = callId;
+		obj.callData = callData;
+		_return = obj;
+	}
+	else if("CallDataResult" == OprType)
+	{
+	}
+	else if("SwitchtypeInfo" == OprType)
+	{
+		_return = document.getElementById("qualityContolSwitchType").value;
+	}
+	parent.window.returnValue = _return;	
+	window.close();	
+}
+
+function noticeTypeChange()
+{
+	var noticeType = document.getElementById("noticeType").value;
+	if("0" == noticeType)
+    {
+        queryGroupByAgent(workNo);
+    }
+    else if("1" == noticeType)
+    {
+        querySkillByAgent(workNo);
+    }
+}
+
+function voiceTransferOnChange()
+{
+	var deviceTypeVoice = document.getElementById("deviceTypeVoice").value;
+	if("5" == deviceTypeVoice)
+	{
+		$('#addressVoice').empty();
+		$('#addressVoice').show();
+		$("#addressVoiceChoose").hide();
+		$('#modeVoice').empty();
+		document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+		document.getElementById("modeVoice").options.add(new Option("释放转","1"));
+		document.getElementById("modeVoice").options.add(new Option("通话转","3"));
+		document.getElementById("modeVoice").options.add(new Option("三方转","4"));
+	}else
+	{
+		$('#addressVoice').hide();
+		$("#addressVoiceChoose").show();
+		
+		if("1" == deviceTypeVoice)
+		{
+			$('#modeVoice').empty();
+			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
+			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+			loadSkillQueue(workNo);
+		}
+		else if("2" == deviceTypeVoice)
+		{
+			$('#modeVoice').empty();
+			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
+			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+			document.getElementById("modeVoice").options.add(new Option("指定转","3"));
+			queryAgent(workNo);
+		}
+		else if("3" == deviceTypeVoice)
+		{
+			$('#modeVoice').empty();
+			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
+			document.getElementById("modeVoice").options.add(new Option("挂起转","1"));
+			queryIvrByAgent(workNo);
+		}
+		else if("4" == deviceTypeVoice)
+		{
+			$('#modeVoice').empty();
+			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
+			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+			queryAccessCodeByAgent(workNo);
+		}
+	}
+}
+
+function textTransferOnChange()
+{
+	var textDeviceType = document.getElementById("deviceType").value; // 1 or 10
+	if ("1" == textDeviceType)
+	{
+		queryAgentText(workNo);
+	}else
+	{
+		loadSkillQueueText(workNo);
+	}
+	
+}
+
+function innerHelpOnChange()
+{
+	var innerHelpDevice = document.getElementById("innerHelpDevice").value; // 1 or 10
+	if ("1" == innerHelpDevice)
+	{
+		queryInnerHelpSkillQ(workNo);
+	}else
+	{
+		queryInnerHelpAgent(workNo);
+	}
+	
+}
+
+
+function qualityControlQuerySwitchType()
+{ 
+    $("#qualityContolSwitchType").empty();
+    document.getElementById("qualityContolSwitchType").options.add(new Option("侦听","0"));
+    document.getElementById("qualityContolSwitchType").options.add(new Option("插入","1"));
+    document.getElementById("qualityContolSwitchType").options.add(new Option("耳语","2"));
+						
+}
+
+
+
+</script>
+</head>
+<body>
+    <table width="320" height="240" id="tbModPwd" style="display:none;frame:box;cellspacing:0%">		
+		<tr align="center">
+			<td height="30">
+			    <span>旧密码:</span><input type="password" value="" ID="oldPwd"/>
+			</td>
+		</tr>
+		<tr align="center">
+			<td height="30">
+			    <span>新密码:</span><input type="password" value="" ID="newPwd"/>
+			</td>
+		</tr>
+		<tr align="center">
+			<td height="30">
+			    <span>确认:</span><input type="password" value="" ID="confirmPwd"/>
+			</td>
+		</tr>
+		<tr align="center">
+			<td><input type="button" value="OK" onclick="return response('ModPwd')"/></td>
+		</tr>
+		
+	</table>
+	<table width="320" height="240" id="tbRestInfo" style="display:none;frame:box;cellspacing:0%">		
+		<tr align="center">
+			<td height="30">
+			<span>休息时间：</span><input type="text" id="restTime" />
+			</td>
+		</tr>
+		<tr align="center">
+			<td height="30">
+			<span>休息原因：</span>
+				<select id="restReason" style="width:110px">
+	                <option value="0">无原因</option>
+	            </select>
+			</td>
+		</tr>
+		<tr align="center">
+			<td><input type="button" value="OK" onclick="return response('Rest')"/></td>
+		</tr>
+	</table>
+	
+	<table width="320" height="240" id="tbNoticeInfo" style="display:none;frame:box;cellspacing:0%">     
+        <tr align="center">         
+            <td height="30">
+	            <span>公告类型:</span>
+	            <select id="noticeType" onchange="noticeTypeChange()" style="width:110px">
+	                <option value="0">班组</option>
+	                <option value="1">技能队列</option>
+	            </select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td height="30">
+                <span>名称:</span><select id="targetName"></select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td height="30">
+                <span>公告内容:</span><input type="text" id="noticeContent" />
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('PublishNotice')"/></td>
+        </tr>
+    </table>
+    
+    <table width="320" height="240" id="tbNoteInfo" style="display:none;frame:box;cellspacing:0%">     
+        <tr align="center">
+            <td height="30">
+                <span>接收者:</span><input type="text" id="noteReceiver" />
+            </td>
+        </tr>
+        <tr align="center">
+            <td height="30">
+                <span>便签内容:</span><input type="text" id="noteContent" />
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('SendNote')"/></td>
+        </tr>
+    </table>
+	
+	<table width="320" height="240" id="tbHoldList" style="display:none;frame:box;cellspacing:0%">        
+        <tr align="center">         
+            <td height="30">
+            <span>被保持的:</span><select id="holdList" style="width:110px"></select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('UnHold')"/></td>
+        </tr>
+    </table>
+    
+    <table width="320" height="240" id="tbCallInfo" style="display:none;frame:box;cellspacing:0%">        
+        <tr align="center">         
+            <td height="30">
+            <span>呼叫信息:</span>
+            <select id="callInfo" style="width:160px">
+            	
+            </select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('CallInfo')"/></td>
+        </tr>
+    </table>
+    
+    <table width="320" height="240" id="tbInnerHelpInfo" style="display:none;frame:box;cellspacing:0%">        
+        <tr align="center">
+            <td>
+                <span>设备类型:</span>
+                <select id="innerHelpDevice" onchange="innerHelpOnChange()" style="width:160px">
+                	<option value="2">坐席工号</option>
+                	<option value="1">技能队列</option>
+               	</select>
+            </td>
+        </tr>
+        <tr align="center">         
+            <td height="30">
+                <span>求助对象:</span>
+                <select id="innerHelpAddress" style="width:160px"></select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td>
+                <span>求助模式:</span>
+                <select id="innerHelpMode" style="width:160px">
+                	<option value="1">两方</option>
+                	<option value="2">三方</option>
+                </select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('InnerHelpInfo')"/></td>
+        </tr>
+    </table>
+    
+    <table width="320" height="240" id="tbCallOutInfo" style="display:none;frame:box;cellspacing:0%">     
+        <tr align="center">         
+            <td height="30">
+            <span>被叫号码:</span><input type="text" id="called" />
+            </td>
+        </tr>
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('CallOut')"/></td>
+        </tr>
+    </table>
+	
+	<table width="320" height="240" id="tbTransInfo" style="display:none;frame:box;cellspacing:0%">		
+		<tr align="center">
+			<td height="30">
+			<span>设备类型:</span>
+			<select ID="deviceType" onchange="textTransferOnChange()" style="width:110px">
+                <option value="1">业务代表</option>
+                <option value="10">技能队列</option>
+            </select>
+			</td>
+		</tr>
+		<tr align="center">
+			<td height="30">
+			<span>转移地址:</span>
+<!-- 			<input type="text" id="address" /> -->
+			<select ID="address" style="width:110px"></select>
+			</td>
+		</tr>
+		<tr align="center">
+			<td height="30">
+			<span>转移模式:</span>
+			<select ID="mode" style="width:110px">
+			    <option value="0">释放转</option>
+                <option value="1">成功转</option>
+            </select>
+			</td>
+		</tr>	
+		<tr align="center">
+			<td><input type="button" value="OK" onclick="return response('Transfer')"/></td>
+		</tr>
+	</table>
+	
+	<table width="320" height="240" id="tbVoiceTransInfo" style="display:none;frame:box;cellspacing:0%">        
+        <tr align="center">
+            <td height="30">
+            <span>设备类型:</span>
+            <select ID="deviceTypeVoice" onchange="voiceTransferOnChange()" style="width:110px">
+                <option value="1">技能队列</option>
+                <option value="2">业务代表</option>
+                <option value="3">IVR</option>  
+                <option value="4">系统接入码</option>
+                <option value="5">外呼号码</option>
+            </select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td height="30">
+            <span>转移地址:</span>
+            <input type="text" id="addressVoice" style="width:105px"/>
+            <select ID="addressVoiceChoose" style="width:110px"></select>
+            </td>
+        </tr>
+        <tr align="center">
+            <td height="30">
+            <span>转移模式:</span>
+            <select ID="modeVoice" style="width:110px">
+            </select>
+            </td>
+        </tr>   
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('VoiceTransfer')"/></td>
+        </tr>
+    </table>
+	
+	<table width="320" height="240" id="tbInnerCallInfo" style="display:none;frame:box;cellspacing:0%">		
+		<tr align="center">			
+			<td height="30">
+			<span>坐席工号:</span><select ID="agentID" style="width:110px"></select>
+			</td>
+		</tr>
+		<tr align="center">
+			<td><input type="button" value="OK" onclick="return response('InnerCall')"/></td>
+		</tr>
+	</table>
+	<table width="320" height="240" id="tbSetCallData" style="display:none;frame:box;cellspacing:0%">		
+		<tr align="center">			
+			<td height="30">
+			<span>呼叫信息:</span>
+			<select ID="callInformationSet" style="width:200px"></select>
+			</td>
+		</tr>
+		<tr align="center">
+            <td height="30">
+            <p>设置随路数据:</p>
+            <textarea id="setCallData" rows="4" style="width:80%"></textarea>
+            </td>
+        </tr>
+		<tr align="center">
+			<td><input type="button" value="OK" onclick="return response('SetCallData')"/></td>
+		</tr>
+	</table>
+	<table width="320" height="240" id="tbCallDataResult" style="display:none;frame:box;cellspacing:0%">
+	    <tr align="center">
+            <td height="30">
+            <p>随路数据:</p>
+            <textarea id="callDataResult" readonly="readonly" rows="4" style="width:80%"></textarea>
+            </td>
+        </tr>
+		<tr align="center">
+			<td><input type="button" value="Exit" onclick="return response('CallDataResult')"/></td>
+		</tr>
+	</table>
+	
+	<table width="320" height="240" id="tbSwitchtypeInfo" style="display:none;frame:box;cellspacing:0%">        
+        <tr align="center">
+            <td height="30">
+            <span>转换状态:</span>
+            <select ID="qualityContolSwitchType"   style="width:110px">
+            </select>
+            </td>
+        </tr>        
+        <tr align="center">
+            <td><input type="button" value="OK" onclick="return response('SwitchtypeInfo')"/></td>
+        </tr>
+    </table>
+    
+			
+</body>
+</html>

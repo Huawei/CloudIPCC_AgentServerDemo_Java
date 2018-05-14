@@ -1,0 +1,500 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+	<script type="text/javascript" src="page/openjs/jquery-1.6.2.js"></script>
+	<script type="text/javascript" src="page/openjs/json.js"></script>
+	<script type="text/javascript" src="page/js/dataInfo/hashMap.js"></script>
+	<script type="text/javascript" src="page/js/dataInfo/globalVariable.js"></script>
+	<script type="text/javascript" src="page/js/eventHandle/eventHandle.js"></script>
+	<script type="text/javascript" src="page/js/eventHandle/eventProcess.js"></script>
+	<script type="text/javascript" src="page/js/operation/init.js"></script>
+	<script type="text/javascript" src="page/js/operation/callcontrol.js"></script>
+	<script type="text/javascript" src="page/js/operation/qualitycontrol.js"></script>
+	<script type="text/javascript" src="page/js/operation/conf.js"></script>
+	<script type="text/javascript" src="page/js/operation/voice.js"></script>
+	<script type="text/javascript" src="page/js/util.js"></script>
+	<script type="text/javascript" src="page/agentdialog.js"></script>
+	<script type="text/javascript" src="page/js/i18n/i18n.js"></script>
+    <script type="text/javascript" src="page/js/i18n/demo.agentapp.lang.string.js"></script>
+	
+	<script language="javascript">  
+        window.onload=function()
+        { 
+            var LanguagePage = new LanguagePageClass();
+            var I18N = new I18NClass();
+            var langobj = LanguagePage.GetLanguagePage(global_language);
+            I18N.SwitchI18N(langobj);
+        }  
+    </script>
+	
+	<!--1. Voice Ocx Events --------------------------------------------------------------------------------------------------->
+	<script type="text/javascript" event="VoiceInitResultEvent(sResult)" for="VoiceOcx">
+	    var result = JSON.parse(sResult);
+	    if("0" != result.resultCode)
+	    {
+	        writeLog("VoiceInitResultEvent"+sResult);
+	    }
+	    else
+    	{
+	    	init_voice();
+    	}	    	
+	</script>
+	
+	<script type="text/javascript" event="VoiceRegisterResultEvent(sResult)" for="VoiceOcx">
+	    var result = JSON.parse(sResult);
+	    if("0" != result.resultCode)
+	    {
+	        writeLog("VoiceRegisterResultEvent"+sResult);
+	    }
+	</script>
+	
+	<script type="text/javascript" event="VoiceDeregisterResultEvent(sResult)" for="VoiceOcx">
+	    var result = JSON.parse(sResult);
+	    if("0" != result.resultCode)
+	    {
+	        writeLog("VoiceDeregisterResultEvent"+sResult);
+	    }
+	</script>
+	
+	<script type="text/javascript" event="VoiceTalkAlertingEvent(sResult)" for="VoiceOcx">
+        writeLog("VoiceTalkAlertingEvent"+sResult)
+	    var result = JSON.parse(sResult);
+        phoneAnswer(result.callid,result.isVideo);
+	</script>
+	
+	<script type="text/javascript" event="VoiceTalkConnectedEvent(sResult)" for="VoiceOcx">
+	    var result = JSON.parse(sResult);
+	    if(result.isVideo)
+    	{
+	    	showMemberVideo();
+    	}
+	</script>
+	
+	<script type="text/javascript" event="VoiceTalkReleaseEvent(sResult)" for="VoiceOcx">
+	    var result = JSON.parse(sResult);
+	    if("0" != result.resultCode)
+	    {
+	        writeLog("VoiceTalkReleaseEvent"+sResult);
+	    }
+	    else if("0" == result.resultCode && result.isVideo)
+    	{
+	    	stopVideo();
+    	}
+	</script>
+	
+	<!--2. Conference Ocx Events --------------------------------------------------------------------------------------------------->
+	
+	<script type="text/javascript" event="ConfInitResultEvent(eventInfo)" for="ConferenceOcx">
+	   var result = JSON.parse(eventInfo);  
+	   if ("0" != result.resultCode)
+	   {
+		   writeLog("ConfInitResultEvent"+eventInfo);
+	   }
+	   else
+	   {
+	       init_conf();
+	   }
+	</script>
+	<script type="text/javascript" event="JoinConfResultEvent(eventInfo)" for="ConferenceOcx">
+	    var result = JSON.parse(eventInfo);
+	    if ("0" != result.resultCode)
+	    {
+	        writeLog("JoinConfResultEvent"+eventInfo);
+	        JoinConfResult(result.confId,result.resultCode);
+	    }
+	</script>
+	<script type="text/javascript" event="MemberEnterConfEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("MemberEnterConfEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    addToMemberList(result.userId);
+	</script>
+	<script type="text/javascript" event="MemberLeaveConfEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("MemberLeaveConfEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    if (result.isSelf) {
+			clearMemberList();
+	        //clear conference resource
+	        clearConfResource();
+		}else {
+	        removeFromMemberList(result.userId);
+		}
+	</script>
+	<script type="text/javascript" event="TerminateConfResultEvent(eventInfo)" for="ConferenceOcx">	    
+	    writeLog("TerminateConfResultEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    if ("0"==result.resultCode)
+	    {
+	    	meetingAgentId="";
+	        stopConf(global_workNo,global_confId);
+	        clearMemberList();
+	        clearConfResource();
+	    }
+	    else
+    	{
+	    	writeLog("TerminateConfResultEvent"+eventInfo);
+    	}
+	</script>
+	<script type="text/javascript" event="MessageArrivedEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("MessageArrivedEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="FileTranProgressEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("FileTranProgressEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="FileTranOverEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("FileTranOverEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="FileArrivedEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("FileArrivedEvent"+eventInfo);
+	</script>	
+	<script type="text/javascript" event="StartShareScreenResultEvent(eventInfo)" for="ConferenceOcx">	    
+	    var result = JSON.parse(eventInfo);
+	    if ("0" != result.resultCode)
+	    {
+	    	writeLog("StartShareScreenResultEvent"+eventInfo);
+	    }
+	</script>
+	<script type="text/javascript" event="SharingOwnerNotifyEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("SharingOwnerNotifyEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    switch (result.action)
+	    {
+	    case "add":
+	        global_screenShareOwner = result.userId;
+	        alert(result.userId+" is sharing desktop.");
+	        break;
+	    case "delete":
+	        global_screenShareOwner = "";
+	        meetingAgentId = "";
+	        alert(result.userId+" stop sharing destop.");
+	        break;
+	    }
+	</script>
+	<script type="text/javascript" event="ShareScreenStateNotifyEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ShareScreenStateNotifyEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    if("Desktop"==result.shareType && "Start"==result.state && global_screenShareOwner != global_workNo)
+	    {
+	        showDesktopShareScreen();
+	    }
+	    if("Application"==result.shareType && "Start"==result.state && global_screenShareOwner != global_workNo)
+	    {	    	
+	        showDesktopShareScreen();
+	    }
+	    
+	    if("Application"==result.shareType && "Start"==result.state && global_screenShareOwner == global_workNo)
+	    {
+	    	var ApplicationList = ConferenceOcx.GetApplicationList();
+	        var applicationList = JSON.parse(ApplicationList); 
+	    	var appInfoList = applicationList.appInfoList;
+	    	$("#application").empty();
+	    	$("#application").append("<span>共享的应用程序：</span>");
+	    	$("#application").append("<select id='aplicationId'></select>");
+	    	for(var i = 0 ; i < appInfoList.length ; i++ ){
+	    		$("#aplicationId").append("<option value='"+appInfoList[i].hwnd+"'>"+appInfoList[i].title+"</option>");
+	    	} 
+	    	$("#application").bind("change",function(){
+	    	    showApplication($("#aplicationId").val());
+	    	    $("#application").empty();
+	    	})
+	    }
+	    if("Desktop"==result.shareType && "Stop"==result.state && global_screenShareOwner != global_workNo)
+	    {
+	        closeDesktopShareScreen();
+	    }
+	    if("Application"==result.shareType && "Stop"==result.state && global_screenShareOwner != global_workNo)
+	    {	    	
+	        closeDesktopShareScreen();
+	    }
+	    
+	</script>
+	<script type="text/javascript" event="OperationPrivilegeRequestEvent(eventInfo)" for="ConferenceOcx">
+	    var result = JSON.parse(eventInfo);
+	    alert(result.userId+" request for operation privilege.");
+	    meetingAgentId = result.userId;
+	</script>
+	<script type="text/javascript" event="OperationPrivilegeStateEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("OperationPrivilegeStateEvent"+eventInfo);
+	    var result = JSON.parse(eventInfo);
+	    if ("reject" == result.action) {
+			alert("Reject for operation privilege");
+		}
+	</script>
+	<script type="text/javascript" event="ShareScreenWndSizeEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ShareScreenWndSizeEvent"+eventInfo);	
+	    var result = JSON.parse(eventInfo);
+	    var x = result.X;
+	    var y = result.Y; 
+	    var width = 800;
+	    var height = Math.ceil(width*y/x);
+	    ConferenceOcx.SetShareScreenDisplaySize(width,height); 
+	</script>
+	<script type="text/javascript" event="LoadComponentFailedEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("LoadComponentFailedEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="ConfNetWorkDisconnectedEvent()" for="ConferenceOcx">
+	    writeLog("ConfNetWorkDisconnectedEvent");
+	</script>
+	<script type="text/javascript" event="ConfNetWorkStatusEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ConfNetWorkStatusEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="ConfRemainingTimeEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ConfRemainingTimeEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="ShareFileLoadingProgressEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ShareFileLoadingProgressEvent"+eventInfo);
+	</script>
+	<script type="text/javascript" event="ShareFileOpenEvent(eventInfo)" for="ConferenceOcx">
+	  
+	    writeLog("ShareFileOpenEvent"+eventInfo);
+		var result = JSON.parse(eventInfo);
+		if ("self" == result.owner) {
+		    shareFileId = result.fileId;
+		} else {
+			shareFileId = result.fileId;
+			shareFileName = result.fileName;
+			//showShareFileWnd(shareFileId);
+			showShareFileWnd();
+		}
+	</script>
+	<script type="text/javascript" event="ShareFileCurrentPageEvent(eventInfo)" for="ConferenceOcx">
+	    writeLog("ShareFileCurrentPageEvent"+eventInfo);
+	 
+	    var result = JSON.parse(eventInfo);
+	    var pageCount = result.pageCount;
+	    var currentPageNo = result.currentPageNo;
+	    $("#currentPage").text("当前页数："+(currentPageNo+1));
+	    $("#totalPage").text(" 总页数："+pageCount);
+	    
+	    /* var result = JSON.parse(eventInfo);
+	    var pageCount = result.pageCount;
+	    var currentPageNo = result.currentPageNo;
+	    $("#pages").empty();
+	    for(var i=0;i<pageCount;i++){
+	    	$("#pages").append("<span style='width:50px'><a href='javascript:SpecifiedPage("+i+")'>  "+(i+1)+"  </a></span>")
+	    }
+	    $("#currentPage").text("当前页数："+(currentPageNo+1));
+	    $("#totalPage").text(" 总页数："+pageCount); */
+	    
+	</script>
+	
+	<script type="text/javascript" event="ShareFileCloseEvent(eventInfo)" for="ConferenceOcx">
+		writeLog("ShareFileCloseEvent"+eventInfo);
+		var result = JSON.parse(eventInfo);
+		if ("0" == result.resultCode) {
+			$("#currentPage").empty();
+			$("#totalPage").empty();
+		   // closeShareFileWnd(shareFileId,shareFileId)
+		    closeShareFileWnd();
+		}
+	</script>
+	
+	<style type="text/css">
+	    input[type="button"]
+	    {
+	        height: 25px;
+	        width: 110px;
+	    }	
+	</style>
+	
+</head>	
+<OBJECT ID="WndUiOcx" CLASSID="CLSID:C0EC67C2-CF8A-4E55-9AB3-8EF7E1BB1C94" width=0 height=0></OBJECT>
+<OBJECT ID="ConferenceOcx" CLASSID="CLSID:254C557B-CC4D-4258-98E8-EAC7DE31D0A3" width=0 height=0></OBJECT>
+<OBJECT ID="VoiceOcx" CLASSID="CLSID:0396287C-FEDD-4E49-866B-1CE1D2084390" width=0 height=0></OBJECT>	
+<body >
+    <div style="float:left;width:67%">
+        <h3 self="I18N_AGENTAPPDEMO_INITIAL_INTERFACE">Initialize Interface:</h3>
+        <table width="100%" border="0" cellpadding="0" cellspacing="3">
+            <tr>
+                <td>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_ID">AgentID:</span><input type="text" value="" ID="workNo"/>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_PWD">AgentPwd:</span><input type="password" value="" ID="password"/>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_STATUS">Agent Status:</span><span id="status">Not login</span>				
+                </td>
+            </tr> 
+            <tr>
+                <td>
+                    <span self="I18N_AGENTAPPDEMO_PHONE_NO">PhoneNo:</span><input type="text" value="" ID="phonenumber"/>
+                    <span self="I18N_AGENTAPPDEMO_PHONE_PWD">PhonePwd:</span><input type="password" value="" ID="Phonepassword"/>				
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Login" ID="Login" self="I18N_AGENTAPPDEMO_AGENT_LOGIN"/>
+                    <input type="button" value="Logout" ID="Logout" self="I18N_AGENTAPPDEMO_AGENT_LOGOUT"/>               
+                    <input type="checkbox" ID="AutoAnswer" checked="checked" /><span self="I18N_AGENTAPPDEMO_AUTO_PICKUP">Auto Answer</span>             
+                    <input type="checkbox" ID="isVideoAgent" /><span self="I18N_AGENTAPPDEMO_VIDEO_ABILITY">Video Ability</span>
+                    <input type="checkbox" ID="voicePhone" />Use voiceOcx
+                </td>                                           
+            </tr>
+        </table>        
+	
+        <h3 self="I18N_AGENTAPPDEMO_INFO_STATCTRL">Status Management:</h3>
+        <table width="100%" border="0" cellpadding="0" cellspacing="3">
+            <tr>
+                <td>								
+                    <input type="button" value="Busy" ID="SayBusy" self="I18N_AGENTAPPDEMO_BUSY"/>				
+                    <input type="button" value="Idle" ID="SayIdle" self="I18N_AGENTAPPDEMO_IDLE"/>				
+                    <input type="button" value="Work" ID="EnterWork" self="I18N_AGENTAPPDEMO_WORK"/>				
+                    <input type="button" value="ExitWork" ID="CancelWork" self="I18N_AGENTAPPDEMO_EXITWORK"/>				
+                    <input type="button" value="Rest" ID="Rest" self="I18N_AGENTAPPDEMO_REST"/>				
+                    <input type="button" value="ExitRest" ID="CancelRest" self="I18N_AGENTAPPDEMO_EXITREST"/>
+                </td>                                            
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Publish Notice" ID="publishNotice" self="I18N_AGENTAPPDEMO_PUBLISH_NOTICE"/>
+                    <input type="button" value="Send Note" ID="sendNote" self="I18N_AGENTAPPDEMO_SEND_NOTE"/>  
+                </td>
+            </tr>
+        </table>
+	
+        <h3 self="I18N_AGENTAPPDEMO_CALLCTRL">Call Management:</h3>
+        <table width="100%" border="0" cellpadding="0" cellspacing="3">
+            <tr>
+                <td>
+                    <input type="button" value="Answer" ID="voicecallAnswer" self="I18N_AGENTAPPDEMO_VOICE_ANSWER"/>			
+                    <input type="button" value="Hangup" ID="voicecallRelease" self="I18N_AGENTAPPDEMO_VOICE_RELEASE"/>			
+                    <input type="button" value="Hold" ID="voicecallHold" self="I18N_AGENTAPPDEMO_AGENT_HOLD"/>			
+                    <input type="button" value="Unhold" ID="voicecallUnHold" self="I18N_AGENTAPPDEMO_AGENT_UNHOLD"/>			
+                    <input type="button" value="Mute" ID="voicecallMute" self="I18N_AGENTAPPDEMO_AGENT_MUTE"/>
+                    <input type="button" value="UnMute" ID="voicecallUnMute" self="I18N_AGENTAPPDEMO_AGENT_UNMUTE"/>
+                </td>
+            </tr>
+            <tr>
+                <td>			
+                    <input type="button" value="Inner Call" ID="voicecallInner" self="I18N_AGENTAPPDEMO_AGENT_INNERCALL"/>	
+                    <input type="button" value="Third Party Call" ID="voicecallThreePart" self="I18N_AGENTAPPDEMO_AGENT_PARTYCALL"/>
+                    <input type="button" value="Inner Help" ID="voiceInnerHelp" self="I18N_AGENTAPPDEMO_AGENT_INNERHELP"/>		
+                    <input type="button" value="Call Out" ID="voicecallOut" self="I18N_AGENTAPPDEMO_AGENT_CALLOUT"/>								
+                    <input type="button" value="Transfer" ID="voicecallTransfer" self="I18N_AGENTAPPDEMO_AGENT_TRANSFER"/>	
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Set Call Data" style="width:120px;" ID="setCalldata" self="I18N_AGENTAPPDEMO_AGENT_CALLDATA_SET"/>
+                    <input type="button" value="Get Call Data" style="width:120px;" ID="queryCalldata" self="I18N_AGENTAPPDEMO_AGENT_CALLDATA_GET"/>  
+                </td>
+            </tr>
+            
+        </table>
+        
+        <h3 self="I18N_AGENTAPPDEMO_WEBCHAT_RELATED">WebChat-related:</h3>	
+        <table width="100%" border="0" cellpadding="0" cellspacing="3">
+            <tr>
+                <td>
+                    <input type="button" value="Answer WebChat" style="width:120px;" ID="textChatAnswer" self="I18N_AGENTAPPDEMO_WEBCHAT_ANSWER"/>				
+                    <input type="button" value="Refuse WebChat" style="width:120px;" ID="textChatReject" self="I18N_AGENTAPPDEMO_WEBCHAT_REFUSE"/>
+                    <input type="button" value="Close WebChat" style="width:120px;" ID="textChatDrop" self="I18N_AGENTAPPDEMO_WEBCHAT_CLOSE"/>
+                    <input type="button" value="Inner WebChat" style="width:120px;" ID="textChatInner" self="I18N_AGENTAPPDEMO_WEBCHAT_INNER"/>				
+                    <input type="button" value="Transfer WebChat" style="width:120px;" ID="textChatTransfer" self="I18N_AGENTAPPDEMO_WEBCHAT_TRANSFER"/>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td valign="top" id="userList" style="width:160px" bgcolor="#DCDCDC"></td>
+                <td>
+                    <textarea rows="15" id="ChatTextBox" readonly="readonly" 
+                           style="width:530px;height:150px;overflow: auto;"></textarea><br/><br/>				 
+                    <span self="I18N_AGENTAPPDEMO_WEBCHAT_MESSAGE">Message:</span><input id="ChatMessage" type="text" value="" style="width:320px"/>&nbsp;
+                    <input type="button" id="textChatSend" name="ChatContentSend" style="width:120px;" self="I18N_AGENTAPPDEMO_WEBCHAT_SEND_MESSAGE"/>&nbsp;
+                    <input type="button"  id="textChatClear" name="ClearChatContent" style="width:150px;" self="I18N_AGENTAPPDEMO_WEBCHAT_CLEAR_HISTORY"/><br/><br/>
+                    <div style=border-style:dashed;border-width:1px>
+                        <h3 self="I18N_AGENTAPPDEMO_ICP20">ICP2.0 Speciality</h3>
+                        <input id="upfile" type="file" />&nbsp;
+                        <input type="button" id="fileUpload" name="ChatContentSend" self="I18N_AGENTAPPDEMO_UPLOAD_FILE" /><br/><br/>
+                        <span self="I18N_AGENTAPPDEMO_FILE_PATH"></span><input id="filePath" type="text" value="" style="width:420px"/>&nbsp;
+                        <input type="button" id="fileDownload" name="ChatContentSend" self="I18N_AGENTAPPDEMO_DOWNLOAD_FILE"/><br/><br/>  
+                    </div>                 
+                </td>
+            </tr>
+        </table>
+	
+        <h3 self="I18N_AGENTAPPDEMO_MULTIMEDIA_RELATED">Multimedia Related:</h3>
+        <table width="100%" border="0" cellpadding="0" cellspacing="3">
+            <tr>
+                <td>
+                    <div id="memberList"><span self="I18N_AGENTAPPDEMO_CONFERENCE_MEMBERS">Conf MemberList:</span></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Create Conference" style="width:130px;" ID ="requestConf" self="I18N_AGENTAPPDEMO_CONFERENCE_CREATE"/>				
+                    <input type="button" value="Invite Conference" style="width:130px;" ID ="inviteConf" self="I18N_AGENTAPPDEMO_CONFERENCE_CREATE"/>			
+                    <input type="button" value="Join Conference" style="width:120px;" ID="joinConf" self="I18N_AGENTAPPDEMO_CONFERENCE_JOIN"/>			
+                    <input type="button" value="Leave Conference" style="width:120px;" ID="leaveConf" self="I18N_AGENTAPPDEMO_CONFERENCE_LEAVE"/>			
+                    <input type="button" value="Stop Conference" style="width:120px;" ID="stopConf" self="I18N_AGENTAPPDEMO_CONFERENCE_STOP"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select id="screenShareType" style="width:110px">
+                        <option value="Desktop" self="I18N_AGENTAPPDEMO_SHARE_DESKTOP">Share Desktop</option>
+                        <option value="Application" self="I18N_AGENTAPPDEMO_SHARE_APPLICATION">Share Application</option>
+                    </select>
+                    
+                    <input type="button" value="Start DesktopShare" style="width:140px;" ID ="startShareScreen" self="I18N_AGENTAPPDEMO_START_DESKTOP_SHARE"/>				
+                    <input type="button" value="Stop DesktopShare" style="width:140px;" ID ="stopShareScreen" self="I18N_AGENTAPPDEMO_STOP_DESKTOP_SHARE"/>			
+                    <input type="button" value="Ask RemoteCtrl" style="width:140px;" ID="requestControl" self="I18N_AGENTAPPDEMO_ASK_REMOTE_CTRL"/>			
+                    <input type="button" value="Authorize RemoteCtrl" style="width:140px;" ID="addOperationPrivilege" self="I18N_AGENTAPPDEMO_ALLOW_REMOTE_CTRL"/>			
+                    <input type="button" value="Revoke RemoteCtrl" style="width:140px;" ID="deleteOperationPrivilege" self="I18N_AGENTAPPDEMO_STOP_REMOTE_CTRL"/>				
+                    <input type="button" value="Refuse RemoteCtrl" style="width:140px;" ID="refuseControl" self="I18N_AGENTAPPDEMO_STOP_REMOTE_CTRL"/>
+                </td>
+            </tr>
+            <tr>
+            	<td>
+        	        <span self="I18N_AGENTAPPDEMO_DOCUMENT_SHARE_PATH">Absolute Document Path For Sharing:  </span><input type="text" value="C:/Users/Desktop/module.docx" style="width:425px" ID="shareFilePath"/>			
+            	</td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Start Document Sharing" style="width:150px;" ID ="startShareFile" self="I18N_AGENTAPPDEMO_DOCUMENT_SHARE_START"/>	
+                    <input type="button" value="Save Document" style="width:120px;" ID ="storeShareFile" self="I18N_AGENTAPPDEMO_DOCUMENT_SHARE_SAVE"/>	
+                    <input type="button" value="Stop Document Sharing" style="width:150px;" ID ="stopShareFile" self="I18N_AGENTAPPDEMO_DOCUMENT_SHARE_STOP"/>			
+                    <input type="button" value="Last Page" style="width:120px;" ID ="previousPage" self="I18N_AGENTAPPDEMO_DOCUMENT_LAST_PAGE"/>	
+                    <input type="button" value="Next Page" style="width:120px;" ID ="nextPage" self="I18N_AGENTAPPDEMO_DOCUMENT_NEXT_PAGE"/>		
+                    <span id="currentPage"></span>
+                    <span id="totalPage"></span>
+                </td>
+            </tr>
+        </table>
+         <div id ="application"></div>
+        <h3 self="I18N_AGENTAPPDEMO_INSPECTION_RELATED">Inspection-Related</h3>	
+        <span id="agentInfo" style="width:250px" self="I18N_AGENTAPPDEMO_INSPECTION_INSPECTEE">Inspectee:</span>
+        <span style="width:250px" id="agentStatus" self="I18N_AGENTAPPDEMO_INSPECTION_INSPECTOR_STATUS">Inspector Status:</span>
+        <table width="100%" border="0" cellpadding="0" cellspacing="6">
+            <tr>
+                <td>
+                    <input type="button" value="Insert" ID="qualityControlInsert" self="I18N_AGENTAPPDEMO_INSPECTION_INSERT"/>				
+                    <input type="button" value="Supervise" ID="qualityControlSupervise" self="I18N_AGENTAPPDEMO_INSPECTION_SUPERVISE"/>
+                    <input type="button" value="Stop Insert/Supervise" style="width:160px;" ID="CancellInsertOrListen" self="I18N_AGENTAPPDEMO_INSPECTION_STOP_INSERT_LISTEN"/>	
+                    <input type="button" value="Switch Insert/Supervise/Whisper" style="width:220px;" ID="qualityControlSwitch" self="I18N_AGENTAPPDEMO_INSPECTION_MODE_SWITCH"/>				
+                    <input type="button" value="Whisper" ID="requestWhisper" self="I18N_AGENTAPPDEMO_INSPECTION_WHISPER"/>				
+                    <input type="button" value="Stop Whisper" ID="stopWhisper" self="I18N_AGENTAPPDEMO_INSPECTION_STOP_WHISPER"/>				
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Intercept" ID="qualityControlIntercept" self="I18N_AGENTAPPDEMO_INSPECTION_INTERCEPT"/>
+                    <input type="button" value="Agent Status" ID="searchAllAgentstatus" self="I18N_AGENTAPPDEMO_INSPECTION_AGENT_STATUS"/>				
+                </td>
+            </tr>
+            <tr id="pages">
+            </tr>
+        </table>
+        <table id="agentsTab" width="100%" border="0" cellpadding="0" cellspacing="6">
+        </table>
+    
+    </div>
+    <div style="float:left;width:33%">
+        <p self="I18N_AGENTAPPDEMO_LOG">LOG</p>
+        <p>
+            <input type="button" value="Clear Log" ID="clearLog" self="I18N_AGENTAPPDEMO_LOG_CLEAR"/>
+        </p>
+        <textarea id="LogInfo" readonly="readonly" rows="50" style="width:100%"></textarea>
+    </div>
+   
+</body>
+</html>

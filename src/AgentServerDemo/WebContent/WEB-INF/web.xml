@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>AgentServerDemo</display-name>
+  
+  <listener>
+    <listener-class>com.huawei.agentdemo.servlet.InitServletListener</listener-class>
+  </listener>
+  
+  <listener>      
+    <listener-class>com.huawei.demo.filter.SessionListener</listener-class>      
+  </listener>
+  
+  <session-config>
+  	<session-timeout>1</session-timeout>
+  </session-config>  
+   
+  <servlet>
+    <servlet-name>OnlineAgent</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.OnlineAgentServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OnlineAgent</servlet-name>
+    <url-pattern>/online.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>EventHandle</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.EventHandleServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EventHandle</servlet-name>
+    <url-pattern>/event.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>VoiceCall</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.VoiceCallServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VoiceCall</servlet-name>
+    <url-pattern>/voice.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>TextChat</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.TextChatServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TextChat</servlet-name>
+    <url-pattern>/textchat.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>QueryQueueDeviceInfo</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.QueryQueueDeviceInfoServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>QueryQueueDeviceInfo</servlet-name>
+    <url-pattern>/queuedevice.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>QueryAgentGroupInfo</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.QueryAgentGroupInfoServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>QueryAgentGroupInfo</servlet-name>
+    <url-pattern>/agentgroup.do</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>QueryCallDataInfo</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.QueryCallDataInfoServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>QueryCallDataInfo</servlet-name>
+    <url-pattern>/calldata.do</url-pattern>
+  </servlet-mapping>
+  
+ 
+  
+  <servlet>
+    <servlet-name>QualityControl</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.QualityControlServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>QualityControl</servlet-name>
+    <url-pattern>/qualitycontrol.do</url-pattern>
+  </servlet-mapping>
+  
+<!--   <servlet>
+    <servlet-name>Query</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.QueryInfoServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Query</servlet-name>
+    <url-pattern>/query.do</url-pattern>
+  </servlet-mapping> -->
+  
+  <servlet>
+    <servlet-name>MultiMediaConf</servlet-name>
+    <servlet-class>com.huawei.agentdemo.servlet.MultiMediaConfServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MultiMediaConf</servlet-name>
+    <url-pattern>/conf.do</url-pattern>
+  </servlet-mapping>
+
+  
+  <servlet>
+	<servlet-name>AgentEventServlet</servlet-name>
+	<servlet-class>com.huawei.agentdemo.servlet.AgentEventServlet</servlet-class>
+	<load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+	<servlet-name>AgentEventServlet</servlet-name>
+	<url-pattern>/AgentEventServlet</url-pattern>
+  </servlet-mapping>
+  
+  
+   <filter>
+    <filter-name>auth</filter-name>
+    <filter-class>com.huawei.demo.filter.RequestFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>auth</filter-name>
+    <url-pattern>*.do</url-pattern>
+  </filter-mapping> 
+  
+  <welcome-file-list>
+    <welcome-file>AgentApp.html</welcome-file>
+  </welcome-file-list>
+</web-app>
