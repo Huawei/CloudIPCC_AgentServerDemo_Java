@@ -152,7 +152,7 @@ function Process_ExceptionLogout()
     
     global_workNo = "";
     alert("Please reLogin.");
-    if ($("#voicePhone").attr("checked"))
+    if (global_phoneMode == 2)
 	{
 		voiceLogout(); //Phone logout
 	}	

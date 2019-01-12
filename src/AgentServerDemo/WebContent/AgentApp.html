@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<script type="text/javascript" src="page/openjs/jquery-1.6.2.js"></script>
 	<script type="text/javascript" src="page/openjs/json.js"></script>
 	<script type="text/javascript" src="page/js/dataInfo/hashMap.js"></script>
@@ -18,14 +19,39 @@
 	<script type="text/javascript" src="page/agentdialog.js"></script>
 	<script type="text/javascript" src="page/js/i18n/i18n.js"></script>
     <script type="text/javascript" src="page/js/i18n/demo.agentapp.lang.string.js"></script>
-	
+	<script type="text/javascript" src="page/js/H5/CloudIPCC_SDK.js"></script>
+	<script type="text/javascript" src="page/js/H5/tupSDK.js"></script>
 	<script language="javascript">  
+        function getLangObj()
+        {
+        	 var browerLanguage =(navigator.language || navigator.browserLanguage).toLowerCase();
+             var LanguagePage = new LanguagePageClass();
+             if (browerLanguage.indexOf('zh') >= 0)
+             {
+                 global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_CHINESE);
+             }
+             else
+             {
+                 global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_ENGLISH);
+             }
+             var langObj = global_language;
+        }
+	
         window.onload=function()
         { 
+            var browerLanguage =(navigator.language || navigator.browserLanguage).toLowerCase();
             var LanguagePage = new LanguagePageClass();
             var I18N = new I18NClass();
-            var langobj = LanguagePage.GetLanguagePage(global_language);
-            I18N.SwitchI18N(langobj);
+            if (browerLanguage.indexOf('zh') >= 0)
+            {
+                global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_CHINESE);
+                I18N.SwitchI18N(global_language);
+            }
+            else
+            {
+                global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_ENGLISH);
+                I18N.SwitchI18N(global_language);
+            }
         }  
     </script>
 	
@@ -189,7 +215,7 @@
 	        var applicationList = JSON.parse(ApplicationList); 
 	    	var appInfoList = applicationList.appInfoList;
 	    	$("#application").empty();
-	    	$("#application").append("<span>共享的应用程序：</span>");
+	    	$("#application").append("<span>Application：</span>");
 	    	$("#application").append("<select id='aplicationId'></select>");
 	    	for(var i = 0 ; i < appInfoList.length ; i++ ){
 	    		$("#aplicationId").append("<option value='"+appInfoList[i].hwnd+"'>"+appInfoList[i].title+"</option>");
@@ -259,13 +285,15 @@
 		}
 	</script>
 	<script type="text/javascript" event="ShareFileCurrentPageEvent(eventInfo)" for="ConferenceOcx">
+	    var LanguagePage = new LanguagePageClass();
+        var langobj = LanguagePage.GetLanguagePage(global_language);
 	    writeLog("ShareFileCurrentPageEvent"+eventInfo);
 	 
 	    var result = JSON.parse(eventInfo);
 	    var pageCount = result.pageCount;
 	    var currentPageNo = result.currentPageNo;
-	    $("#currentPage").text("当前页数："+(currentPageNo+1));
-	    $("#totalPage").text(" 总页数："+pageCount);
+	    $("#currentPage").text(""+langobj.I18N_AGENTAPPDEMO_PAGE_CURRENTPAGE+(currentPageNo+1));
+	    $("#totalPage").text(""+langobj.I18N_AGENTAPPDEMO_PAGE_TOTALPAGES+pageCount);
 	    
 	    /* var result = JSON.parse(eventInfo);
 	    var pageCount = result.pageCount;
@@ -298,25 +326,87 @@
 	    }	
 	</style>
 	
+   <style type="text/css">
+             .input-file1 {
+                position: relative;
+                overflow: hidden;
+                text-align: center;
+                width: 200px;
+                height: 20px;
+                border-width: 2px;
+                border-color: buttonface;
+                float: left;
+                margin-left: 10px;
+                font-size: 15px;
+            }
+            
+            .input-file {
+                cursor: default;
+                display: inline-block;
+                position: relative;
+                overflow: hidden;
+                text-align: center;
+                width: 100px;
+                height: 25px;
+                background-color: buttonface;
+                color: buttontext;
+                text-decoration: none;
+                background-color: buttonface;
+                box-sizing: border-box;
+                border-width: 2px;
+                border-style: outset;
+                border-color: buttonface;
+                border-image: initial;
+                float: left;
+                margin-left: 10px;
+                font-size: 15px;
+            }
+            
+            .input-file input[type="file"] {
+                position: absolute;
+                top: 0;
+                right: 0;
+                font-size: 14px;
+                background-color: #fff;
+                transform: translate(-300px, 0px) scale(4);
+                height: 40px;
+                opacity: 0;
+                filter: alpha(opacity=0);
+            }
+        </style>
+        <script>
+           $(function(){
+                $(".input-fileup").change(function(){
+                	var filePath = $("#upfile").val();
+                    $(".showFileName1").val(filePath);
+                })
+            }) 
+        </script>
 </head>	
 <OBJECT ID="WndUiOcx" CLASSID="CLSID:C0EC67C2-CF8A-4E55-9AB3-8EF7E1BB1C94" width=0 height=0></OBJECT>
 <OBJECT ID="ConferenceOcx" CLASSID="CLSID:254C557B-CC4D-4258-98E8-EAC7DE31D0A3" width=0 height=0></OBJECT>
 <OBJECT ID="VoiceOcx" CLASSID="CLSID:0396287C-FEDD-4E49-866B-1CE1D2084390" width=0 height=0></OBJECT>	
 <body >
-    <div style="float:left;width:67%">
+
+     <div style="float:left;width:67%">
         <h3 self="I18N_AGENTAPPDEMO_INITIAL_INTERFACE">Initialize Interface:</h3>
         <table width="100%" border="0" cellpadding="0" cellspacing="3">
             <tr>
                 <td>
-                    <span self="I18N_AGENTAPPDEMO_AGENT_ID">AgentID:</span><input type="text" value="" ID="workNo"/>
-                    <span self="I18N_AGENTAPPDEMO_AGENT_PWD">AgentPwd:</span><input type="password" value="" ID="password"/>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_ID">AgentID:</span><input type="text" value="1075" ID="workNo"/>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_PWD">AgentPwd:</span><input type="password" value="Huawei@123" ID="password"/>
                     <span self="I18N_AGENTAPPDEMO_AGENT_STATUS">Agent Status:</span><span id="status">Not login</span>				
                 </td>
             </tr> 
             <tr>
                 <td>
-                    <span self="I18N_AGENTAPPDEMO_PHONE_NO">PhoneNo:</span><input type="text" value="" ID="phonenumber"/>
-                    <span self="I18N_AGENTAPPDEMO_PHONE_PWD">PhonePwd:</span><input type="password" value="" ID="Phonepassword"/>				
+                    <span self="I18N_AGENTAPPDEMO_PHONE_NO">PhoneNo:</span><input type="text" value="70225" ID="phonenumber"/>
+                    <span self="I18N_AGENTAPPDEMO_PHONE_PWD">PhonePwd:</span><input type="password" value="Huawei@123" ID="Phonepassword"/>				
+                    <span self="I18N_AGENTAPPDEMO_PHONE_MODE">PhoneMode:</span><select id="phoneMode" onchange="selectPhoneMode()">
+                    	<option self="I18N_AGENTAPPDEMO_PHONE_MODE1" value="1">External Phone</option>
+                    	<option self="I18N_AGENTAPPDEMO_PHONE_MODE2" value="2">Use VoiceOcx</option>
+                    	<option self="I18N_AGENTAPPDEMO_PHONE_MODE3" value="3">Use H5_JS_SDK</option>
+                    </select>
                 </td>
             </tr>
             <tr>
@@ -324,8 +414,7 @@
                     <input type="button" value="Login" ID="Login" self="I18N_AGENTAPPDEMO_AGENT_LOGIN"/>
                     <input type="button" value="Logout" ID="Logout" self="I18N_AGENTAPPDEMO_AGENT_LOGOUT"/>               
                     <input type="checkbox" ID="AutoAnswer" checked="checked" /><span self="I18N_AGENTAPPDEMO_AUTO_PICKUP">Auto Answer</span>             
-                    <input type="checkbox" ID="isVideoAgent" /><span self="I18N_AGENTAPPDEMO_VIDEO_ABILITY">Video Ability</span>
-                    <input type="checkbox" ID="voicePhone" />Use voiceOcx
+                    <input type="checkbox" ID="isVideoAgent" /><span id="isVideoAgentSpan" self="I18N_AGENTAPPDEMO_VIDEO_ABILITY">Video Ability</span>
                 </td>                                           
             </tr>
         </table>        
@@ -349,7 +438,6 @@
                 </td>
             </tr>
         </table>
-	
         <h3 self="I18N_AGENTAPPDEMO_CALLCTRL">Call Management:</h3>
         <table width="100%" border="0" cellpadding="0" cellspacing="3">
             <tr>
@@ -403,15 +491,21 @@
                     <input type="button"  id="textChatClear" name="ClearChatContent" style="width:150px;" self="I18N_AGENTAPPDEMO_WEBCHAT_CLEAR_HISTORY"/><br/><br/>
                     <div style=border-style:dashed;border-width:1px>
                         <h3 self="I18N_AGENTAPPDEMO_ICP20">ICP2.0 Speciality</h3>
-                        <input id="upfile" type="file" />&nbsp;
-                        <input type="button" id="fileUpload" name="ChatContentSend" self="I18N_AGENTAPPDEMO_UPLOAD_FILE" /><br/><br/>
+
+                            <input type="text" class="showFileName1 input-file1" >
+                            <a  class="input-file input-fileup" href="javascript:;"><span self="I18N_AGENTAPPDEMO_ICP20_CHOOSEFILE"></span><input size="100" style="margin-bottom: 20px;" type="file" name="file" id="upfile">
+                            </a>
+                            <input self="I18N_AGENTAPPDEMO_ICP20_UPLOAD"  type="button" id="fileUpload"  style="float:left;margin-left: 10px;font-size: 15px;height: 25px;" /><br/><br/>
+    
+                      <!--   <input id="upfile" type="file" value="Browse"/>&nbsp;
+                        <input type="button" id="fileUpload" name="ChatContentSend" self="I18N_AGENTAPPDEMO_UPLOAD_FILE" /><br/><br/> -->
                         <span self="I18N_AGENTAPPDEMO_FILE_PATH"></span><input id="filePath" type="text" value="" style="width:420px"/>&nbsp;
                         <input type="button" id="fileDownload" name="ChatContentSend" self="I18N_AGENTAPPDEMO_DOWNLOAD_FILE"/><br/><br/>  
                     </div>                 
                 </td>
             </tr>
         </table>
-	
+	       
         <h3 self="I18N_AGENTAPPDEMO_MULTIMEDIA_RELATED">Multimedia Related:</h3>
         <table width="100%" border="0" cellpadding="0" cellspacing="3">
             <tr>
@@ -422,7 +516,7 @@
             <tr>
                 <td>
                     <input type="button" value="Create Conference" style="width:130px;" ID ="requestConf" self="I18N_AGENTAPPDEMO_CONFERENCE_CREATE"/>				
-                    <input type="button" value="Invite Conference" style="width:130px;" ID ="inviteConf" self="I18N_AGENTAPPDEMO_CONFERENCE_CREATE"/>			
+                    <input type="button" value="Invite Conference" style="width:130px;" ID ="inviteConf" self="I18N_AGENTAPPDEMO_CONFERENCE_INVITE"/>			
                     <input type="button" value="Join Conference" style="width:120px;" ID="joinConf" self="I18N_AGENTAPPDEMO_CONFERENCE_JOIN"/>			
                     <input type="button" value="Leave Conference" style="width:120px;" ID="leaveConf" self="I18N_AGENTAPPDEMO_CONFERENCE_LEAVE"/>			
                     <input type="button" value="Stop Conference" style="width:120px;" ID="stopConf" self="I18N_AGENTAPPDEMO_CONFERENCE_STOP"/>

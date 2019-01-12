@@ -34,12 +34,8 @@ $(function(){
 	    {
 	        return;
 	    }
-		var callid = openHoldListDialog(workNo);
-		if (IsNullOrBlank(callid))
-        {
-        	return;
-        }
-		voiceGetHold(workNo,callid);
+		sessionStorage.setItem("HoldList","voicecallUnHold");
+		openHoldListDialog(workNo);
 	});
 	
 	$("#voicecallMute").click(function(){
@@ -62,12 +58,8 @@ $(function(){
 	
 	$("#voicecallInner").click(function(){
 		var workNo = global_workNo;
-		var called = openInnerCallDialog(workNo);
-		if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
-	    {
-	        return;
-	    }		
-		voiceCallInner(workNo,called);
+		sessionStorage.setItem("Innercall","voice");
+		openInnerCallDialog(workNo);
 	});
 	
 	$("#voicecallThreePart").click(function(){
@@ -76,12 +68,8 @@ $(function(){
 	    {
 	        return;
 	    }
-		var callid = openHoldListDialog(workNo);
-		if (IsNullOrBlank(callid))
-        {
-        	return;
-        }
-		voicecallThreePart(workNo,callid);
+		sessionStorage.setItem("HoldList","voicecallThreePart");
+		openHoldListDialog(workNo);
 	});
 	
 	$("#releaseTheCall").click(function(){
@@ -90,39 +78,17 @@ $(function(){
 	    {
 	        return;
 	    }
-		var callId = openCallInfoDialog(workNo);
-		if (IsNullOrBlank(callId))
-		{
-			return;
-		}
-		destroyTheCall(workNo,callId);
+		openCallInfoDialog(workNo);
 	});
 	
 	$("#voiceInnerHelp").click(function(){
 		var workNo = global_workNo;
-		var innerHelpInfo = openInnerHelpInfoDialog(workNo);
-		if (IsNullOrBlank(innerHelpInfo))
-        {
-        	return;
-        }
-		var dstaddress = innerHelpInfo.dstaddress;
-		var devicetype = innerHelpInfo.devicetype;
-		var mode = innerHelpInfo.mode;
-		if (!isValidWorkNo(workNo))
-	    {
-	        return;
-	    }
-		voicecallInnerHelp(workNo,dstaddress,devicetype,mode);
+		openInnerHelpInfoDialog(workNo);
 	});
 	
 	$("#voicecallOut").click(function(){
 		var workNo = global_workNo;
 		var called = openCallOutDialog();
-		if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
-	    {
-	        return;
-	    }
-		voiceCallout(workNo,called);
 	});
 		
 	$("#voicecallTransfer").click(function(){
@@ -132,19 +98,7 @@ $(function(){
         {
         	return;
         }
-		var transInfo = openVoiceTransDialog(workNo);
-		if (IsNullOrBlank(transInfo))
-        {
-        	return;
-        }
-		var devicetype = transInfo.deviceType;
-		var address = transInfo.address;
-		var mode = transInfo.mode;
-		if (!isValidWorkNo(workNo) || IsNullOrBlank(devicetype) || IsNullOrBlank(address) || IsNullOrBlank(mode))
-	    {
-	        return;
-	    }
-		voicecallTransfer(workNo,devicetype,address,mode);
+		openVoiceTransDialog(workNo);
 	});
 	
 	$("#setCalldata").click(function(){
@@ -153,18 +107,7 @@ $(function(){
         {
         	return;
         }
-		var callDataInfo = openSetCallDataDialog(workNo);
-		if (null == callDataInfo)
-		{
-			return;
-		}
-		var callId = callDataInfo.callId;
-		var callData = callDataInfo.callData;
-		if (IsNullOrBlank(callId)||IsNullOrBlank(callData))
-		{
-			return;
-		}
-		setCallData(workNo,callId,callData);
+		openSetCallDataDialog(workNo);
 	});
 	
 	$("#queryCalldata").click(function(){
@@ -207,33 +150,16 @@ $(function(){
     });
     
     $("#textChatInner").click(function() {
-        var workNo = global_workNo;        
-        var called = openInnerCallDialog(workNo);
-        if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
-	    {
-	        return;
-	    }
-        interCall(workNo,called);
+        var workNo = global_workNo; 
+        sessionStorage.setItem("Innercall","text");
+        openInnerCallDialog(workNo);
+
     });
     
     $("#textChatTransfer").click(function() {
         var workNo = global_workNo;        
-        var callId = global_clickCallId;
-        var transInfo = openTransDialog(workNo);
-        if (IsNullOrBlank(transInfo))
-        {
-        	return;
-        }
-        var addresstype = transInfo.deviceType;
-        var destaddr = transInfo.address;
-        var mode = transInfo.mode;
-        
-        if (!isValidWorkNo(workNo) || IsNullOrBlank(callId) 
-        		|| IsNullOrBlank(addresstype) || IsNullOrBlank(destaddr))
-	    {
-	        return;
-	    }
-        textTransfer(workNo,addresstype,destaddr,callId,mode);
+        openTransDialog(workNo);
+
     });
         
     $("#textChatSend").click(function()
@@ -791,3 +717,132 @@ function UpdateWhenChatContentSent(content) {
 	chatText.scrollTop= chatText.scrollHeight * 12;
 }
 
+function voicecallUnHold(callid)
+{
+	var workNo = global_workNo;
+	if (IsNullOrBlank(callid))
+	{
+		return;
+	}
+	voiceGetHold(workNo,callid);
+}
+
+function VoiceInnerCall(called)
+{
+	var workNo = global_workNo;
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
+	{
+		return;
+	}		
+	voiceCallInner(workNo,called);
+}
+
+function CallInfo(callId)
+{
+	var workNo = global_workNo;
+	if (IsNullOrBlank(callId))
+	{
+		return;
+	}
+	destroyTheCall(workNo,callId);
+}
+
+function InnerHelp(innerHelpInfo)
+{
+	var workNo = global_workNo;
+	if (IsNullOrBlank(innerHelpInfo))
+	{
+		return;
+	}
+	var dstaddress = innerHelpInfo.dstaddress;
+	var devicetype = innerHelpInfo.devicetype;
+	var mode = innerHelpInfo.mode;
+	if (!isValidWorkNo(workNo))
+	{
+		return;
+	}
+	voicecallInnerHelp(workNo,dstaddress,devicetype,mode);
+}
+
+function CallOut(called)
+{
+	var workNo = global_workNo;
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
+	{
+		return;
+	}
+	voiceCallout(workNo,called);
+}
+
+function VoiceTransfer(transInfo)
+{
+	var workNo = global_workNo;
+	if (IsNullOrBlank(transInfo))
+	{
+		return;
+	}
+	var devicetype = transInfo.deviceType;
+	var address = transInfo.address;
+	var mode = transInfo.mode;
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(devicetype) || IsNullOrBlank(address) || IsNullOrBlank(mode))
+	{
+		return;
+	}
+	voicecallTransfer(workNo,devicetype,address,mode);
+}
+
+function SetCallData(callDataInfo)
+{
+	var workNo = global_workNo;
+	if (null == callDataInfo)
+	{
+		return;
+	}
+	var callId = callDataInfo.callId;
+	var callData = callDataInfo.callData;
+	if (IsNullOrBlank(callId)||IsNullOrBlank(callData))
+	{
+		return;
+	}
+	setCallData(workNo,callId,callData);
+}
+
+function TextInnerCall(called)
+{
+	var workNo = global_workNo;
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(called))
+	{
+		return;
+	}
+	interCall(workNo,called);
+}
+
+function Transfer(transInfo)
+{
+    var callId = global_clickCallId;
+	var workNo = global_workNo;
+	if (IsNullOrBlank(transInfo))
+	{
+		return;
+	}
+	var addresstype = transInfo.deviceType;
+	var destaddr = transInfo.address;
+	var mode = transInfo.mode;
+	
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(callId) 
+			|| IsNullOrBlank(addresstype) || IsNullOrBlank(destaddr))
+	{
+		return;
+	}
+	textTransfer(workNo,addresstype,destaddr,callId,mode);
+}
+
+function VoicecallThreePartCase(callid)
+{
+	var workNo = global_workNo;
+	if (IsNullOrBlank(callid))
+	{
+		return;
+	}
+	voicecallThreePart(workNo,callid);
+}

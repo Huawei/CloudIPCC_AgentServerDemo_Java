@@ -18,12 +18,15 @@ var map = new HashMap();
 
 
 
-var global_SipServerIP = "127.0.0.1|example.com";
+var global_SipServerIP = "10.175.19.164|example.com";
 var global_SipServerPort = "5060";
-var global_LocalIP = "127.0.0.1";
+var global_LocalIP = "10.177.223.69";
 var global_LocalSipPort = "7061";
 var global_LocalAudioPort = "7062";
 var global_AnnonymousCard = "AnonymousCard";
+var global_cloudIPCC_SDK = null;
+var global_userPhoneNumber = "";
+var global_phoneMode = 1;
 
-var global_language = "Chinese";  //please see page/js/i18n/demo.userapp.lang.string.js to see what language the demo supports
-//var global_language = "English";
+
+var global_language= {};

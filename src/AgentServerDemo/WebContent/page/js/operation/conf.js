@@ -426,10 +426,27 @@ function removeFromMemberList(userId)
 	elem.parentNode.removeChild(elem);
 }
 
+
+function getLangObj_conf()
+{
+	 var browerLanguage =(navigator.language || navigator.browserLanguage).toLowerCase();
+     var LanguagePage = new LanguagePageClass();
+     if (browerLanguage.indexOf('zh') >= 0)
+     {
+         global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_CHINESE);
+     }
+     else
+     {
+         global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_ENGLISH);
+     }
+     var langObj = global_language;
+     return langObj;
+}
 /*
  * clear member list
  */
 function clearMemberList()
 {
-	document.getElementById("memberList").innerHTML = "会议成员：";
+	var langObj=getLangObj_conf();
+	document.getElementById("memberList").innerHTML = langObj.I18N_AGENTAPPDEMO_CONFERENCE_MEMBERS;
 }

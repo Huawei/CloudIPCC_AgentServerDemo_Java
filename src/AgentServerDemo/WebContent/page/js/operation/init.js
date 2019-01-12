@@ -16,7 +16,9 @@ $(function() {
         {
         	isAutoanswer = false;
         }
-        if ($("#isVideoAgent").attr("checked"))
+        
+        global_phoneMode = Number($("#phoneMode").val());
+        if (global_phoneMode !=3 && $("#isVideoAgent").attr("checked"))
         {
         	agenttype = 11;
         }
@@ -85,18 +87,7 @@ $(function() {
     
     $("#Rest").click(function() {
         var workNo = global_workNo;        
-        var restInfo = openRestInfoDialog(workNo);
-        if (IsNullOrBlank(restInfo))
-        {
-        	return;
-        }
-        var restTime = restInfo.restTime;
-        var restReason = restInfo.restReason;
-        if (!isValidWorkNo(workNo) || IsNullOrBlank(restTime) || IsNullOrBlank(restReason))
-        {
-            return;
-        }
-        rest(workNo,restTime,restReason);
+        openRestInfoDialog(workNo);
     });
     
     $("#CancelRest").click(function() {
@@ -114,15 +105,7 @@ $(function() {
         {
         	return;
         }
-        var noticeInfo = openNoticeInfoDialog(workNo);
-        if (IsNullOrBlank(noticeInfo))
-        {
-        	return;
-        }
-        var noticeType = noticeInfo.noticeType;
-        var targetName = noticeInfo.targetName;
-        var noticeContent = noticeInfo.noticeContent;
-        publishNotice(workNo,noticeType,noticeContent,targetName);
+        openNoticeInfoDialog(workNo);
     });
     
     $("#sendNote").click(function() {
@@ -131,14 +114,7 @@ $(function() {
         {
         	return;
         }
-        var noteInfo = openNoteInfoDialog();
-        if (IsNullOrBlank(noteInfo))
-        {
-        	return;
-        }
-        var receiver = noteInfo.receiver;
-        var content = noteInfo.content;
-        sendNote(workNo,receiver,content);
+        openNoteInfoDialog();
     });
         
     //Clear Log Button
@@ -181,17 +157,28 @@ function forceLogin(workNo, password, phonenum,isAutoanswer,agenttype)
             var result = ret.result;
             if ("true" == result.isForceChange)//need change passWord
             {
-            	var pwdInfo = openModPwdDialog();
-            	modifyPwd(global_workNo, pwdInfo.oldPwd, pwdInfo.newPwd);
+            	openModPwdDialog();
+
             }
             else
         	{
             	resetSkill(global_workNo); //reset skills
         	}
-            if ($("#voicePhone").attr("checked"))
+            if (global_phoneMode == 2)
         	{
             	voiceLogin(); //phone login
-        	}        	
+        	}    
+            else if (global_phoneMode == 3)
+    		{
+            	if (global_cloudIPCC_SDK != null)
+            	{
+            		register();
+            	}
+            	else
+            	{
+            		initTupH5();
+            	}
+    		}
             break;
 		}
 	});
@@ -217,10 +204,14 @@ function logout(workNo)
             $("#status").css('color','black');
             $("#password_tr").hide();
             global_workNo = "";
-            if ($("#voicePhone").attr("checked"))
+            if (global_phoneMode == 2)
         	{
         		voiceLogout(); //Phone logout
-        	}         	
+        	}         
+            if (global_phoneMode == 3)
+            {
+            	 deRegister();
+            }
             break;
         }
     });
@@ -245,7 +236,7 @@ function forceLogout(workNo)
         	$("#status").html("Not login");
             $("#status").css('color','black');
             global_workNo = "";
-            if ($("#voicePhone").attr("checked"))
+            if (global_phoneMode == 2)
         	{
         		voiceLogout(); //Phone logout
         	}
@@ -469,3 +460,65 @@ function initVoiceTransfer()
 	$("#addressVoiceChoose").show();
 }
 
+
+function selectPhoneMode()
+{
+	if (Number($("#phoneMode").val()) == 3)
+	{
+		$("#isVideoAgent").hide();
+		$("#isVideoAgentSpan").hide();
+	}
+	else
+	{
+		$("#isVideoAgent").show();
+		$("#isVideoAgentSpan").show();
+	}
+}
+
+
+function Rest(restInfo)
+{
+	if (IsNullOrBlank(restInfo))
+	{
+		return;
+	}
+	var restTime = restInfo.restTime;
+	var restReason = restInfo.restReason;
+	workNo = global_workNo;
+	if (!isValidWorkNo(workNo) || IsNullOrBlank(restTime) || IsNullOrBlank(restReason))
+	{
+		return;
+	}
+	rest(workNo,restTime,restReason);
+}
+
+function PublishNotice(noticeInfo)
+{
+	workNo = global_workNo;
+	if (IsNullOrBlank(noticeInfo))
+	{
+		return;
+	}
+	var noticeType = noticeInfo.noticeType;
+	var targetName = noticeInfo.targetName;
+	var noticeContent = noticeInfo.noticeContent;
+	publishNotice(workNo,noticeType,noticeContent,targetName);
+}
+
+function SendNote(noteInfo)
+{
+	workNo = global_workNo;
+	if (IsNullOrBlank(noteInfo))
+	{
+		return;
+	}
+	var receiver = noteInfo.receiver;
+	var content = noteInfo.content;
+	sendNote(workNo,receiver,content);
+}
+
+function ModPwd(pwdInfo)
+{
+	workNo = global_workNo;
+	modifyPwd(global_workNo, pwdInfo.oldPwd, pwdInfo.newPwd);
+}

@@ -49,22 +49,7 @@ $(function(){
 	$("#qualityControlSwitch").click(function(){
 		
 		var workNo = global_workNo;
-		var monitoredWorkNo = global_choosedAgent;
-		var switchtype = openSwithTypeDialog(workNo);
-		if (!isValidWorkNo(workNo))
-		{
-			return;
-		}
-		//获取swithtype的值，可以采用下拉列表形式来设计转换类型
-		if (IsNullOrBlank(switchtype)) {
-			return;
-		}
-		if (monitoredWorkNo == undefined || monitoredWorkNo == null || monitoredWorkNo == "")
-		{
-			return;
-		}
-		swithType(workNo,monitoredWorkNo,switchtype);
-		
+		openSwithTypeDialog(workNo);
 	});	
 	
 	
@@ -287,9 +272,26 @@ function stopWhisper(workNo,whisperWorkNo)
 		});	
 }
 
+function getLanguage()
+{
+	 var browerLanguage =(navigator.language || navigator.browserLanguage).toLowerCase();
+     var LanguagePage = new LanguagePageClass();
+     if (browerLanguage.indexOf('zh') >= 0)
+     {
+         global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_CHINESE);
+     }
+     else
+     {
+         global_language = LanguagePage.GetLanguagePage(LANGUAGE_SUPPORT.LANGUAGE_SUPPORT_ENGLISH);
+     }
+     var langObj = global_language;
+     return langObj;
+}
+
 /*	查询所有坐席状态  */
 function searchAllAgentstatus(workNo)
 {
+	var langObj = getLanguage();
 	$.post("/"+WEB_NAME+"/qualitycontrol.do",
 	{
 	    "identityMark" : workNo,
@@ -300,14 +302,16 @@ function searchAllAgentstatus(workNo)
 	    var res = JSON.parse(data);
 	    switch (res.retcode) {
 		case "0":
-
+			
+			
 			//页面显示查询结果  agentss,border,"0",cellpadding,"0",cellspacing,"6"
 			var agents =res.result;
 			$("#agentsTab").empty();
 			var html = "";
-			html += "<tr ><td>坐席工号</td>" +
-			             "<td>坐席名称</td>" +
-			             "<td>坐席状态</td>" +
+
+			html += "<tr ><td>"+langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_WORKNO+"</td>" +
+			             "<td>"+langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_NAME+"</td>" +
+			             "<td>"+langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS+"</td>" +
 			       "</tr>";
 			for(var i=0 ; i<agents.length ; i++ ){
 				if (global_workNo != agents[i].workno) {
@@ -327,42 +331,43 @@ function searchAllAgentstatus(workNo)
 }
 
 function showMonitoredAgentStatus(status){
+    var langObj = getLanguage();
 	var agentStatus = "" ;
 	switch (status) {
 	case "0":
-		    agentStatus = "未知";
+		    agentStatus = langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_UNKNOW;
 		    return agentStatus;
 		    break;
 	case "1":
-		    agentStatus = "签入状态";
+		    agentStatus = langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_SIGNIN;
 		    return agentStatus;
 		    break;
 	case "2":
-		    agentStatus = "签出状态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_SIGNOUT;
 		    return agentStatus;
 		    break;
 	case "3":
-		    agentStatus = "示忙状态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_BUSY;
 		    return agentStatus;
 		    break;
 	case "4":
-		    agentStatus = "空闲状态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_IDLE;
 		    return agentStatus;
 		    break;
 	case "5":
-		    agentStatus = "整理态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_ACW;
 		    return agentStatus;
 		    break;
 	case "6":
-		    agentStatus = "同空闲态";
+		    agentStatus = 	langObj. I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_SAMEASIDLE;
 		    return agentStatus;
 		    break;
 	case "7":
-		    agentStatus = "通话态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_TALKING;
 		    return agentStatus;
 		    break;
 	case "8":
-		    agentStatus = "休息状态";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_REST;
 		    return agentStatus;
 		    break;
 	default:
@@ -374,26 +379,47 @@ function showMonitoredAgentStatus(status){
 
 function showAgentStatus(global_agentStatus)
 {
+    var langObj =  getLanguage();
 	var agentStatus = global_agentStatus;
 	switch (agentStatus) {
 	case "0":
-		    agentStatus = "正在侦听";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_SUPERVISE;
 		    break;
 	case "1":
-		    agentStatus = "正在插入";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_INSERT;
 		    break;
 	case "2":
-		    agentStatus = "正在耳语";
+		    agentStatus = 	langObj.I18N_AGENTAPPDEMO_QUALITY_AGENTSTATUS_STATUS_WHISPER;
 		    break;
 	default:
 		   break;
 	}
-	var html=$("#agentStatus").html("质检坐席状态："+agentStatus);
+	var html=$("#agentStatus").html(langObj.I18N_AGENTAPPDEMO_INSPECTION_INSPECTOR_STATUS+agentStatus);
 	
 }
 
 function chooseAgentWorkNo(workNo){
 	//选择要侦听/插入的坐席号
+	var langObj = getLanguage();
 	global_choosedAgent = workNo;
-	var html=$("#agentInfo").html("被质检坐席："+global_choosedAgent);
+	var html=$("#agentInfo").html(langObj.I18N_AGENTAPPDEMO_INSPECTION_INSPECTEE+global_choosedAgent);
+}
+
+function SwithType(switchtype)
+{
+	var workNo = global_workNo;
+	var monitoredWorkNo = global_choosedAgent;
+	if (!isValidWorkNo(workNo))
+	{
+		return;
+	}
+	//获取swithtype的值，可以采用下拉列表形式来设计转换类型
+	if (IsNullOrBlank(switchtype)) {
+		return;
+	}
+	if (monitoredWorkNo == undefined || monitoredWorkNo == null || monitoredWorkNo == "")
+	{
+		return;
+	}
+	swithType(workNo,monitoredWorkNo,switchtype);
 }

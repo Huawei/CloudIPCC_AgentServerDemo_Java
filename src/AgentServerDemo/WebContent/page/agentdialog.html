@@ -10,9 +10,23 @@
 <script type="text/javascript" src="agentdialog.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/operation/query.js"></script>
+<script type="text/javascript" src="js/H5/CloudIPCC_SDK.js"></script>
+<script type="text/javascript" src="js/i18n/demo.agentapp.lang.string.js"></script>
+<script type="text/javascript" src="js/i18n/i18n.js"></script>
 <script type="text/javascript">
+
+function getLangObj(){
+	 var LanguagePage = new LanguagePageClass();
+	 var langobj = LanguagePage.GetLanguagePage(global_language);
+	 return langobj;
+}
+
 window.onload=function init()
 {
+    var  langobj =getLangObj(); 
+    var I18N = new I18NClass();
+    I18N.SwitchI18N(langobj); 
+	
 	document.getElementById("tbRestInfo").style.display="none";
 	document.getElementById("tbTransInfo").style.display="none";
 	document.getElementById("tbInnerCallInfo").style.display="none";
@@ -27,8 +41,9 @@ window.onload=function init()
 	document.getElementById("tbCallDataResult").style.display="none";
 	document.getElementById("tbModPwd").style.display="none";
 	
-	dialogType = window.dialogArguments.str;
-	workNo = window.dialogArguments.workNo;
+	var arg  = JSON.parse( sessionStorage.getItem("arg"));
+	dialogType = arg.str;
+	workNo = arg.workNo;
 	
 	if ("ModPwd" == dialogType)
 	{
@@ -102,8 +117,8 @@ window.onload=function init()
         var deviceTypeVoice = document.getElementById("deviceTypeVoice").value;
        	$('#addressVoice').hide();
        	$("#addressVoiceChoose").show();
-       	document.getElementById("modeVoice").options.add(new Option("释放转","0"));
-       	document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+       	document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"0"));
+       	document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_SUCCESS,"2"));
        	loadSkillQueue(workNo);
 	}
 	else if("SetCallData" == dialogType)
@@ -285,8 +300,16 @@ function response(OprType)
 	{
 		_return = document.getElementById("qualityContolSwitchType").value;
 	}
-	parent.window.returnValue = _return;	
-	window.close();	
+
+	if (window.opener != undefined) 
+	{
+		window.opener.handleReturnValue(_return);
+	}
+	else
+	{
+		window.handleReturnValue(_return);
+	}
+	parent.close();
 }
 
 function noticeTypeChange()
@@ -304,6 +327,7 @@ function noticeTypeChange()
 
 function voiceTransferOnChange()
 {
+	var langobj = getLangObj();
 	var deviceTypeVoice = document.getElementById("deviceTypeVoice").value;
 	if("5" == deviceTypeVoice)
 	{
@@ -311,10 +335,10 @@ function voiceTransferOnChange()
 		$('#addressVoice').show();
 		$("#addressVoiceChoose").hide();
 		$('#modeVoice').empty();
-		document.getElementById("modeVoice").options.add(new Option("成功转","2"));
-		document.getElementById("modeVoice").options.add(new Option("释放转","1"));
-		document.getElementById("modeVoice").options.add(new Option("通话转","3"));
-		document.getElementById("modeVoice").options.add(new Option("三方转","4"));
+		document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_SUCCESS,"2"));
+		document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"1"));
+		document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_TALKING,"3"));
+		document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_THREE,"4"));
 	}else
 	{
 		$('#addressVoice').hide();
@@ -323,30 +347,30 @@ function voiceTransferOnChange()
 		if("1" == deviceTypeVoice)
 		{
 			$('#modeVoice').empty();
-			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
-			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"0"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_SUCCESS,"2"));
 			loadSkillQueue(workNo);
 		}
 		else if("2" == deviceTypeVoice)
 		{
 			$('#modeVoice').empty();
-			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
-			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
-			document.getElementById("modeVoice").options.add(new Option("指定转","3"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"0"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_SUCCESS,"2"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_CERTAIN,"3"));
 			queryAgent(workNo);
 		}
 		else if("3" == deviceTypeVoice)
 		{
 			$('#modeVoice').empty();
-			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
-			document.getElementById("modeVoice").options.add(new Option("挂起转","1"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"0"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_HOLD,"1"));
 			queryIvrByAgent(workNo);
 		}
 		else if("4" == deviceTypeVoice)
 		{
 			$('#modeVoice').empty();
-			document.getElementById("modeVoice").options.add(new Option("释放转","0"));
-			document.getElementById("modeVoice").options.add(new Option("成功转","2"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_RELEASE,"0"));
+			document.getElementById("modeVoice").options.add(new Option(langobj.I18N_AGENTAPPDEMO_TRANSFER_SUCCESS,"2"));
 			queryAccessCodeByAgent(workNo);
 		}
 	}
@@ -381,10 +405,12 @@ function innerHelpOnChange()
 
 function qualityControlQuerySwitchType()
 { 
+	var langobj = getLangObj();
+	
     $("#qualityContolSwitchType").empty();
-    document.getElementById("qualityContolSwitchType").options.add(new Option("侦听","0"));
-    document.getElementById("qualityContolSwitchType").options.add(new Option("插入","1"));
-    document.getElementById("qualityContolSwitchType").options.add(new Option("耳语","2"));
+    document.getElementById("qualityContolSwitchType").options.add(new Option(langobj.I18N_AGENTAPPDEMO_QUALITY_INSERT,"0"));
+    document.getElementById("qualityContolSwitchType").options.add(new Option(langobj.I18N_AGENTAPPDEMO_QUALITY_MONITOR,"1"));
+    document.getElementById("qualityContolSwitchType").options.add(new Option(langobj.I18N_AGENTAPPDEMO_QUALITY_WHISPER,"2"));
 						
 }
 
@@ -396,35 +422,35 @@ function qualityControlQuerySwitchType()
     <table width="320" height="240" id="tbModPwd" style="display:none;frame:box;cellspacing:0%">		
 		<tr align="center">
 			<td height="30">
-			    <span>旧密码:</span><input type="password" value="" ID="oldPwd"/>
+			    <span self="I18N_AGENTAPPDEMO_TBMODPWD_PASSWORD">旧密码:</span><input type="password" value="" ID="oldPwd"/>
 			</td>
 		</tr>
 		<tr align="center">
 			<td height="30">
-			    <span>新密码:</span><input type="password" value="" ID="newPwd"/>
+			    <span self="I18N_AGENTAPPDEMO_TBMODPWD_NEWPASSWORD">新密码:</span><input type="password" value="" ID="newPwd"/>
 			</td>
 		</tr>
 		<tr align="center">
 			<td height="30">
-			    <span>确认:</span><input type="password" value="" ID="confirmPwd"/>
+			    <span self="I18N_AGENTAPPDEMO_TBMODPWD_CONFIRMPWD">确认:</span><input type="password" value="" ID="confirmPwd"/>
 			</td>
 		</tr>
 		<tr align="center">
-			<td><input type="button" value="OK" onclick="return response('ModPwd')"/></td>
+			<td><input type="button" value="OK" self="I18N_AGENTAPPDEMO_TBMODPWD_OK"  onclick="return response('ModPwd')"/></td>
 		</tr>
 		
 	</table>
 	<table width="320" height="240" id="tbRestInfo" style="display:none;frame:box;cellspacing:0%">		
 		<tr align="center">
 			<td height="30">
-			<span>休息时间：</span><input type="text" id="restTime" />
+			<span self="I18N_AGENTAPPDEMO_TBRESTINFO_RESTTIME" >休息时间：</span><input type="text" id="restTime" />
 			</td>
 		</tr>
 		<tr align="center">
 			<td height="30">
-			<span>休息原因：</span>
+			<span self="I18N_AGENTAPPDEMO_TBRESTINFO_RESTREASON">休息原因：</span>
 				<select id="restReason" style="width:110px">
-	                <option value="0">无原因</option>
+	                <option value="0" self="I18N_AGENTAPPDEMO_TBRESTINFO_NOREASON">无原因</option>
 	            </select>
 			</td>
 		</tr>
@@ -436,21 +462,21 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbNoticeInfo" style="display:none;frame:box;cellspacing:0%">     
         <tr align="center">         
             <td height="30">
-	            <span>公告类型:</span>
+	            <span self="I18N_AGENTAPPDEMO_TBNOTICEINFO_TYPE">公告类型:</span>
 	            <select id="noticeType" onchange="noticeTypeChange()" style="width:110px">
-	                <option value="0">班组</option>
-	                <option value="1">技能队列</option>
+	                <option value="0" self="I18N_AGENTAPPDEMO_TBNOTICEINFO_GROUP">班组</option>
+	                <option value="1" self="I18N_AGENTAPPDEMO_TBNOTICEINFO_SKILL">技能队列</option>
 	            </select>
             </td>
         </tr>
         <tr align="center">
             <td height="30">
-                <span>名称:</span><select id="targetName"></select>
+                <span self="I18N_AGENTAPPDEMO_TBNOTICEINFO_NAME">名称:</span><select id="targetName"></select>
             </td>
         </tr>
         <tr align="center">
             <td height="30">
-                <span>公告内容:</span><input type="text" id="noticeContent" />
+                <span self="I18N_AGENTAPPDEMO_TBNOTICEINFO_CONTENT">公告内容:</span><input type="text" id="noticeContent" />
             </td>
         </tr>
         <tr align="center">
@@ -461,12 +487,12 @@ function qualityControlQuerySwitchType()
     <table width="320" height="240" id="tbNoteInfo" style="display:none;frame:box;cellspacing:0%">     
         <tr align="center">
             <td height="30">
-                <span>接收者:</span><input type="text" id="noteReceiver" />
+                <span self="I18N_AGENTAPPDEMO_TBNOTEINFO_RECEIVER">接收者:</span><input type="text" id="noteReceiver" />
             </td>
         </tr>
         <tr align="center">
             <td height="30">
-                <span>便签内容:</span><input type="text" id="noteContent" />
+                <span self="I18N_AGENTAPPDEMO_TBNOTEINFO_CONTENT">便签内容:</span><input type="text" id="noteContent" />
             </td>
         </tr>
         <tr align="center">
@@ -477,18 +503,18 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbHoldList" style="display:none;frame:box;cellspacing:0%">        
         <tr align="center">         
             <td height="30">
-            <span>被保持的:</span><select id="holdList" style="width:110px"></select>
+            <span self="I18N_AGENTAPPDEMO_TBHOLDLIST_HOLDLIST">被保持的:</span><select id="holdList" style="width:110px"></select>
             </td>
         </tr>
         <tr align="center">
-            <td><input type="button" value="OK" onclick="return response('UnHold')"/></td>
+            <td><input type="button" value="OK" self="I18N_AGENTAPPDEMO_TBHOLDLIST_OK" onclick="return response('UnHold')"/></td>
         </tr>
     </table>
     
     <table width="320" height="240" id="tbCallInfo" style="display:none;frame:box;cellspacing:0%">        
         <tr align="center">         
             <td height="30">
-            <span>呼叫信息:</span>
+            <span self="I18N_AGENTAPPDEMO_TBCALLINFO_CALLINFO">呼叫信息:</span>
             <select id="callInfo" style="width:160px">
             	
             </select>
@@ -502,25 +528,25 @@ function qualityControlQuerySwitchType()
     <table width="320" height="240" id="tbInnerHelpInfo" style="display:none;frame:box;cellspacing:0%">        
         <tr align="center">
             <td>
-                <span>设备类型:</span>
-                <select id="innerHelpDevice" onchange="innerHelpOnChange()" style="width:160px">
-                	<option value="2">坐席工号</option>
-                	<option value="1">技能队列</option>
+                <span self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_TYPE">设备类型:</span>
+                <select   id="innerHelpDevice" onchange="innerHelpOnChange()" style="width:160px">
+                	<option value="2" self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_WORKNO">坐席工号</option>
+                	<option value="1" self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_SKILL">技能队列</option>
                	</select>
             </td>
         </tr>
         <tr align="center">         
             <td height="30">
-                <span>求助对象:</span>
+                <span self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_HELP_OBJECT">求助对象:</span>
                 <select id="innerHelpAddress" style="width:160px"></select>
             </td>
         </tr>
         <tr align="center">
             <td>
-                <span>求助模式:</span>
+                <span self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_HELP_TYPE">求助模式:</span>
                 <select id="innerHelpMode" style="width:160px">
-                	<option value="1">两方</option>
-                	<option value="2">三方</option>
+                	<option value="1" self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_HELP_TYPE_TWO">两方</option>
+                	<option value="2" self="I18N_AGENTAPPDEMO_TBINNERHELPINFO_HELP_TYPE_THREE">三方</option>
                 </select>
             </td>
         </tr>
@@ -532,7 +558,7 @@ function qualityControlQuerySwitchType()
     <table width="320" height="240" id="tbCallOutInfo" style="display:none;frame:box;cellspacing:0%">     
         <tr align="center">         
             <td height="30">
-            <span>被叫号码:</span><input type="text" id="called" />
+            <span self="I18N_AGENTAPPDEMO_TBCALLOUTINFO_CALLED">被叫号码:</span><input type="text" id="called" />
             </td>
         </tr>
         <tr align="center">
@@ -543,26 +569,26 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbTransInfo" style="display:none;frame:box;cellspacing:0%">		
 		<tr align="center">
 			<td height="30">
-			<span>设备类型:</span>
+			<span self="I18N_AGENTAPPDEMO_TBTRANSINFO_TYPE" >设备类型:</span>
 			<select ID="deviceType" onchange="textTransferOnChange()" style="width:110px">
-                <option value="1">业务代表</option>
-                <option value="10">技能队列</option>
+                <option value="1" self="I18N_AGENTAPPDEMO_TBTRANSINFO_TYPE_WORKNO">业务代表</option>
+                <option value="10" self="I18N_AGENTAPPDEMO_TBTRANSINFO_TYPE_SKILL">技能队列</option>
             </select>
 			</td>
 		</tr>
 		<tr align="center">
 			<td height="30">
-			<span>转移地址:</span>
+			<span self="I18N_AGENTAPPDEMO_TBTRANSINFO_ADDRESS">转移地址:</span>
 <!-- 			<input type="text" id="address" /> -->
 			<select ID="address" style="width:110px"></select>
 			</td>
 		</tr>
 		<tr align="center">
 			<td height="30">
-			<span>转移模式:</span>
+			<span self="I18N_AGENTAPPDEMO_TBTRANSINFO_MODE">转移模式:</span>
 			<select ID="mode" style="width:110px">
-			    <option value="0">释放转</option>
-                <option value="1">成功转</option>
+			    <option value="0" self="I18N_AGENTAPPDEMO_TBTRANSINFO_MODE_RELEASE">释放转</option>
+                <option value="1" self="I18N_AGENTAPPDEMO_TBTRANSINFO_MODE_SUCCESS">成功转</option>
             </select>
 			</td>
 		</tr>	
@@ -574,26 +600,26 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbVoiceTransInfo" style="display:none;frame:box;cellspacing:0%">        
         <tr align="center">
             <td height="30">
-            <span>设备类型:</span>
+            <span self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE">设备类型:</span>
             <select ID="deviceTypeVoice" onchange="voiceTransferOnChange()" style="width:110px">
-                <option value="1">技能队列</option>
-                <option value="2">业务代表</option>
-                <option value="3">IVR</option>  
-                <option value="4">系统接入码</option>
-                <option value="5">外呼号码</option>
+                <option value="1" self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE_SKILL">技能队列</option>
+                <option value="2" self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE_WORKNO">业务代表</option>
+                <option value="3" self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE_IVR">IVR</option>  
+                <option value="4" self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE_ACCESSCODE">系统接入码</option>
+                <option value="5" self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TYPE_CALLOUTNUMBER">外呼号码</option>
             </select>
             </td>
         </tr>
         <tr align="center">
             <td height="30">
-            <span>转移地址:</span>
+            <span self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TRANSFERTYPE">转移地址:</span>
             <input type="text" id="addressVoice" style="width:105px"/>
             <select ID="addressVoiceChoose" style="width:110px"></select>
             </td>
         </tr>
         <tr align="center">
             <td height="30">
-            <span>转移模式:</span>
+            <span self="I18N_AGENTAPPDEMO_TBVOICETRANSINFO_TRANSFERMODE">转移模式:</span>
             <select ID="modeVoice" style="width:110px">
             </select>
             </td>
@@ -606,7 +632,7 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbInnerCallInfo" style="display:none;frame:box;cellspacing:0%">		
 		<tr align="center">			
 			<td height="30">
-			<span>坐席工号:</span><select ID="agentID" style="width:110px"></select>
+			<span self="I18N_AGENTAPPDEMO_TBINNERCALLINFO_WORKNO">坐席工号:</span><select ID="agentID" style="width:110px"></select>
 			</td>
 		</tr>
 		<tr align="center">
@@ -616,13 +642,13 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbSetCallData" style="display:none;frame:box;cellspacing:0%">		
 		<tr align="center">			
 			<td height="30">
-			<span>呼叫信息:</span>
+			<span self="I18N_AGENTAPPDEMO_TBSETCALLDATA_CALLINFO">呼叫信息:</span>
 			<select ID="callInformationSet" style="width:200px"></select>
 			</td>
 		</tr>
 		<tr align="center">
             <td height="30">
-            <p>设置随路数据:</p>
+            <p self="I18N_AGENTAPPDEMO_TBSETCALLDATA_CALLDATA">设置随路数据:</p>
             <textarea id="setCallData" rows="4" style="width:80%"></textarea>
             </td>
         </tr>
@@ -633,7 +659,7 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbCallDataResult" style="display:none;frame:box;cellspacing:0%">
 	    <tr align="center">
             <td height="30">
-            <p>随路数据:</p>
+            <p self="I18N_AGENTAPPDEMO_TBCALLDATARESULT_CALLDATA">随路数据:</p>
             <textarea id="callDataResult" readonly="readonly" rows="4" style="width:80%"></textarea>
             </td>
         </tr>
@@ -645,7 +671,7 @@ function qualityControlQuerySwitchType()
 	<table width="320" height="240" id="tbSwitchtypeInfo" style="display:none;frame:box;cellspacing:0%">        
         <tr align="center">
             <td height="30">
-            <span>转换状态:</span>
+            <span self="I18N_AGENTAPPDEMO_TBSWITCHTYPEINFO_SWITCHTYPE">转换状态:</span>
             <select ID="qualityContolSwitchType"   style="width:110px">
             </select>
             </td>
@@ -655,6 +681,6 @@ function qualityControlQuerySwitchType()
         </tr>
     </table>
     
-			
+    
 </body>
 </html>
