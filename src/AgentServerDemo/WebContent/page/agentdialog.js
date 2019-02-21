@@ -110,12 +110,12 @@ function openRestInfoDialog(workNo)
 
 function openNoticeInfoDialog(workNo)
 {
-	return openDialog(workNo, "publishNotice");
+	return openDialog(workNo, "PublishNotice");
 }
 
 function openNoteInfoDialog()
 {
-	return openDialog("", "sendNote");
+	return openDialog("", "SendNote");
 }
 
 function openHoldListDialog(workNo)

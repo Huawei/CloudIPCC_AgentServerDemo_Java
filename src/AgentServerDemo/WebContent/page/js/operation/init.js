@@ -176,7 +176,7 @@ function forceLogin(workNo, password, phonenum,isAutoanswer,agenttype)
             	}
             	else
             	{
-            		initTupH5();
+            		initTup();
             	}
     		}
             break;

@@ -20,7 +20,7 @@
 	<script type="text/javascript" src="page/js/i18n/i18n.js"></script>
     <script type="text/javascript" src="page/js/i18n/demo.agentapp.lang.string.js"></script>
 	<script type="text/javascript" src="page/js/H5/CloudIPCC_SDK.js"></script>
-	<script type="text/javascript" src="page/js/H5/tupSDK.js"></script>
+	<script type="text/javascript" src="page/js/H5/tupSDK.js"></script>  
 	<script language="javascript">  
         function getLangObj()
         {
@@ -386,21 +386,21 @@
 <OBJECT ID="WndUiOcx" CLASSID="CLSID:C0EC67C2-CF8A-4E55-9AB3-8EF7E1BB1C94" width=0 height=0></OBJECT>
 <OBJECT ID="ConferenceOcx" CLASSID="CLSID:254C557B-CC4D-4258-98E8-EAC7DE31D0A3" width=0 height=0></OBJECT>
 <OBJECT ID="VoiceOcx" CLASSID="CLSID:0396287C-FEDD-4E49-866B-1CE1D2084390" width=0 height=0></OBJECT>	
-<body >
+<body onload="initTup();" >
 
      <div style="float:left;width:67%">
         <h3 self="I18N_AGENTAPPDEMO_INITIAL_INTERFACE">Initialize Interface:</h3>
         <table width="100%" border="0" cellpadding="0" cellspacing="3">
             <tr>
                 <td>
-                    <span self="I18N_AGENTAPPDEMO_AGENT_ID">AgentID:</span><input type="text" value="1075" ID="workNo"/>
+                    <span self="I18N_AGENTAPPDEMO_AGENT_ID">AgentID:</span><input type="text" value="116" ID="workNo"/>
                     <span self="I18N_AGENTAPPDEMO_AGENT_PWD">AgentPwd:</span><input type="password" value="Huawei@123" ID="password"/>
                     <span self="I18N_AGENTAPPDEMO_AGENT_STATUS">Agent Status:</span><span id="status">Not login</span>				
                 </td>
             </tr> 
             <tr>
                 <td>
-                    <span self="I18N_AGENTAPPDEMO_PHONE_NO">PhoneNo:</span><input type="text" value="70225" ID="phonenumber"/>
+                    <span self="I18N_AGENTAPPDEMO_PHONE_NO">PhoneNo:</span><input type="text" value="70946" ID="phonenumber"/>
                     <span self="I18N_AGENTAPPDEMO_PHONE_PWD">PhonePwd:</span><input type="password" value="Huawei@123" ID="Phonepassword"/>				
                     <span self="I18N_AGENTAPPDEMO_PHONE_MODE">PhoneMode:</span><select id="phoneMode" onchange="selectPhoneMode()">
                     	<option self="I18N_AGENTAPPDEMO_PHONE_MODE1" value="1">External Phone</option>

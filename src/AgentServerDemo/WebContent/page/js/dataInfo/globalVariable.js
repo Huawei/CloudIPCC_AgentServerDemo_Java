@@ -18,9 +18,9 @@ var map = new HashMap();
 
 
 
-var global_SipServerIP = "10.175.19.164|example.com";
+var global_SipServerIP = "127.0.0.1|example.com";
 var global_SipServerPort = "5060";
-var global_LocalIP = "10.177.223.69";
+var global_LocalIP = "127.0.0.1";
 var global_LocalSipPort = "7061";
 var global_LocalAudioPort = "7062";
 var global_AnnonymousCard = "AnonymousCard";

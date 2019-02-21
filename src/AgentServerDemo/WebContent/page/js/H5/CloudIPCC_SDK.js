@@ -18,14 +18,40 @@
         this.sdk = opts.sdk;
         var callServiceAddr = "127.0.0.1";
         var pcol = "ws://";
-        if (typeof MozWebSocket != "undefined") {
-            this.wsocket = new MozWebSocket(pcol + callServiceAddr + ":7682", "protocol_ws_deamon_service");
-        } else {
-            this.wsocket = new WebSocket(pcol + callServiceAddr + ":7682", "protocol_ws_deamon_service");
+        if (document.location.protocol.indexOf("https") != -1) {
+        	if (opts.isHttp) {
+        		callServiceAddr = "127.0.0.1";
+                pcol = "ws://";
+        	} else {
+        		callServiceAddr = "localhost.cloudec.huaweicloud.com";
+                pcol = "wss://";
+        	}
         }
+        this.serviceStatus = 2;
+        
         this.notifyFuncs[1] = opts.sdk.serviceStartUp;
         this.notifyFuncs[2] = opts.sdk.serviceShutDown;
         this.notifyFuncs[3] = opts.sdk.serviceRecover;
+        
+        if (typeof MozWebSocket != "undefined") {
+            this.wsocket = new MozWebSocket(pcol + callServiceAddr + ":7682", "protocol_ws_deamon_service");
+        } else {
+            try {
+				this.wsocket = new WebSocket(pcol + callServiceAddr + ":7682", "protocol_ws_deamon_service");
+			} catch (e) {
+				opts.close();
+				console.error(e);
+				return;
+			}
+        }
+        
+        this.doServiceStartUp = function(){
+        	if (this.serviceStatus != 1)
+        	{
+        		opts.sdk.serviceStartUp(this.sdk, "doServiceStartUp");
+        	}
+        }.bind(this);
+        
         this.wsocket.onopen = opts.ready;
         this.wsocket.onclose = opts.close;
         this.wsocket.onmessage = function(msg) {
@@ -33,9 +59,14 @@
             if (data.notify > 0) {
                 data.notify = data.notify & 0x7fff;
                 if (typeof this.notifyFuncs[data.notify] == "function") {
-                    console.log(msg.data);
                     if (data.notify == 1 || data.notify == 2 || data.notify == 3) {
-                        this.notifyFuncs[data.notify](this.sdk, data);
+                    	console.log(new Date() + msg.data);
+                    	if (this.serviceStatus != 1)
+                    	{
+                    		this.serviceStatus = data.notify;
+                            this.notifyFuncs[data.notify](this.sdk, data);
+                    	}
+                    	
                     }
                 }
             }
@@ -62,6 +93,15 @@
         this.rspFuncs = new Array();
         var callServiceAddr = "127.0.0.1";
         var pcol = "ws://";
+        if (document.location.protocol.indexOf("https") != -1) {
+        	if (opts.isHttp) {
+        		callServiceAddr = "127.0.0.1";
+                pcol = "ws://";
+        	} else {
+        		callServiceAddr = "localhost.cloudec.huaweicloud.com";
+                pcol = "wss://";
+        	}
+        }
         if (typeof MozWebSocket != "undefined") {
             this.wsocket = new MozWebSocket(pcol + callServiceAddr + ":7684", "tup_login_service_protocol");
         } else {
@@ -74,7 +114,7 @@
             if (data.rsp > 0) {
                 var rspIdx = data.rsp & 0x7fff;
                 if (typeof this.rspFuncs[rspIdx] == "function") {
-                    console.log(msg.data);
+                    //console.log(msg.data);
                     if (data.result != 0) {
                         var offset_call = 100000000;
                         data.result = data.result + offset_call;
@@ -134,6 +174,15 @@
         this.rspFuncs = new Array();
         var callServiceAddr = "127.0.0.1";
         var pcol = "ws://";
+        if (document.location.protocol.indexOf("https") != -1) {
+        	if (opts.isHttp) {
+        		callServiceAddr = "127.0.0.1";
+                pcol = "ws://";
+        	} else {
+        		callServiceAddr = "localhost.cloudec.huaweicloud.com";
+                pcol = "wss://";
+        	}
+        }
         if (typeof MozWebSocket != "undefined") {
             this.wsocket = new MozWebSocket(pcol + callServiceAddr + ":7684", "tup_call_service_protocol");
         } else {
@@ -146,9 +195,9 @@
         this.wsocket.onmessage = function(msg) {
             var data = JSON.parse(msg.data);
             //过滤掉“CALL_E_EVT_NET_QUALITY_CHANGE CALL_E_EVT_STATISTIC_NETINFO CALL_E_EVT_STATISTIC_LOCAL_QOS”等频繁上报消息
-            if (((data.notify < 0x18011 || data.notify > 0x18015) && data.notify != 0x1801c) || data.rsp > 0) {
+            /*if (((data.notify < 0x18011 || data.notify > 0x18015) && data.notify != 0x1801c) || data.rsp > 0) {
                 console.log(msg.data);
-            }
+            }*/
             this.msgProcessor(data);
         }.bind(this);
 
@@ -172,7 +221,8 @@
                     data.result = data.result + offset_call;
                 }
                 this.rspFuncs[rspIdx](data);
-				if (rspIdx == 1 && data.description == "tup_call_init"
+                
+                if (rspIdx == 1 && data.description == "tup_call_init"
 					&& typeof this.onVersionInfoNotify == "function")
 				{
 					var newData = {};
@@ -182,6 +232,16 @@
 					newData.param.compile_time = data.param.compile_time;
 					newData.param.version = data.param.version;
 					this.onVersionInfoNotify(newData);
+				}
+                
+				if (data.rsp == 65537 && data.description == "tup_call_config"
+					&& typeof this.onVersionInfoNotify == "function")
+				{
+					if(data.param != null) {
+						if(data.param.version != null) {
+							this.onVersionInfoNotify(data.param.version);
+						}
+					}
 				}
             }
         }
@@ -303,6 +363,10 @@
         }
         if (callbacks && typeof callbacks.onCallEndedFailed == "function") {
             this.notifyFuncs[43] = callbacks.onCallEndedFailed;
+        }
+        
+        if (callbacks && typeof callbacks.onAudioDeviceChanged == "function") {
+            this.notifyFuncs[240] = callbacks.onAudioDeviceChanged;
         }
     }
 
@@ -638,6 +702,23 @@
         };
         this.sendData(data);
     };
+    
+    
+    TUPCall.prototype.setAECParams = function(callbacks) {
+    	if (callbacks && typeof callbacks.response == "function") {
+            this.rspFuncs[0x2C] = callbacks.response;
+        }
+        var data = {
+            "cmd": "0x1011A",
+            "description": "tup_call_set_AEC_params",
+            "param" : {
+            	"call_s_audio_aec_params" : {
+            		"cngmode":1	
+            	}
+            }
+        };
+        this.sendData(data);
+    };
 
 
 
@@ -665,6 +746,7 @@
         this.serverIsOk = false;
         this.tupDeamon = new TUPDeamon({
             sdk: this,
+            isHttp : opts.isHttp,
             ready: opts.onTupDeamonReady,
             close: opts.onTupDeamonClose,
             serviceStartUp: this.serviceStartUp,
@@ -682,11 +764,13 @@
 
     CloudIPCC_SDK.prototype.serviceStartUp = function(sdk, data) {
         sdk.tupLogin = new TUPLogin({
+        	isHttp : sdk.SDK_OPTS.isHttp,
             ready: sdk.SDK_OPTS.onTupLoginReady,
             close: sdk.SDK_OPTS.onTupLoginClose
         });
 
         sdk.tupCall = new TUPCall({
+        	isHttp : sdk.SDK_OPTS.isHttp,
             ready: sdk.SDK_OPTS.onTupCallReady,
             close: sdk.SDK_OPTS.onTupCallClose,
 			onVersionInfoNotify : sdk.SDK_OPTS.onVersionInfoNotify
